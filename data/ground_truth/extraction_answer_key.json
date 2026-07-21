@@ -1,0 +1,12 @@
+{
+  "borrower": "Meridian SaaS Co.",
+  "minimum_liquidity_cash_millions": 8.0,
+  "minimum_cash_runway_months": 4.0,
+  "arr_growth_floor_pct": 20.0,
+  "net_burn_multiple_cap": 1.5,
+  "nrr_floor_pct": 100.0,
+  "latest_month": "2026-12",
+  "latest_arr_millions": 36.5,
+  "latest_cash_balance_millions": 10.2,
+  "latest_nrr_pct": 110.0
+}
