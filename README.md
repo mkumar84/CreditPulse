@@ -29,3 +29,14 @@ data/ground_truth/            Answer keys used by the eval harness
 tests/                        Regression tests for covenants, policies, and evals
 CreditPulse_PRD.md            Product requirements and build plan
 ```
+
+
+## Backend API
+
+Run the Railway-oriented JSON API locally with:
+
+```bash
+python -m creditpulse.api
+```
+
+Available endpoints are `/health`, `/extraction`, `/covenants`, `/memo`, `/evals`, and `/contract`. The API is backend-only and is intended to feed the existing Lovable dashboard.

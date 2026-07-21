@@ -24,3 +24,14 @@ The evals dashboard should emphasize charts for:
 - Covenant breach detection precision and recall.
 - Memo hallucination rate from claim-to-source traceability.
 - Regression across at least two prompt/model iterations.
+
+
+## 6. Backend JSON contract
+
+The Lovable frontend consumes backend JSON from Railway. This repo should expose the following backend-only endpoints rather than building a duplicate frontend:
+
+- `GET /extraction` returns the cited extraction table for borrower, covenant thresholds, and latest-period fields.
+- `GET /covenants` returns deterministic covenant results, breach months, and human-review months with LLM annotations separated from computed values.
+- `GET /memo` returns source-gated memo claims, rendered text, review flags, and finalization status.
+- `GET /evals` returns summary-card metrics and prompt/model regression rows for the evals tab.
+- `GET /contract` returns all of the above in one mock-contract-compatible document for local frontend wiring.

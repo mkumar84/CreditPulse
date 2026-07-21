@@ -1,6 +1,6 @@
 # CreditPulse Build Status
 
-This status file records the implementation checkpoint after reviewing `CreditPulse_PRD.md`. No `AGENTS.md` or `BUILD_GUIDE.md` file is present in the repository, so the build order is interpreted from the provided build guide instructions.
+This status file records the implementation checkpoint after reviewing `AGENTS.md` and `CreditPulse_PRD.md`. It reflects the backend-only context that the Lovable frontend already exists and should not be rebuilt here.
 
 ## Implemented
 
@@ -13,4 +13,9 @@ This status file records the implementation checkpoint after reviewing `CreditPu
 
 ## Next incomplete build step
 
-The next incomplete step is turning the current eval fixtures into a visual dashboard screen. The repository still exposes chart-ready metrics, but no frontend dashboard has been added yet.
+The frontend dashboard already exists as a separate Lovable app, so this backend repo must not build a duplicate visualization layer. Per `AGENTS.md`, the next real incomplete step was step 7: expose an API layer for Railway that serves the extraction table, covenant status, memo output, and eval metrics using the JSON contract in `CreditPulse_PRD.md` §6.
+
+
+## Step 7 progress
+
+`creditpulse.api` now provides backend-only JSON payload builders and a standard-library HTTP server with `/health`, `/extraction`, `/covenants`, `/memo`, `/evals`, and `/contract` endpoints. Follow-up after Railway deployment: point the existing Lovable app from its mocked JSON file to these live endpoints.
