@@ -1,0 +1,18 @@
+[
+  {
+    "iteration": "v1_raw_extraction",
+    "model_profile": "lightweight extraction + high-stakes memo draft",
+    "extraction_accuracy": 0.86,
+    "breach_precision": 0.67,
+    "breach_recall": 1.0,
+    "memo_hallucination_rate": 0.18
+  },
+  {
+    "iteration": "v2_cited_schema_policy_gates",
+    "model_profile": "cited extraction schema + deterministic monitor + source-gated memo",
+    "extraction_accuracy": 0.96,
+    "breach_precision": 1.0,
+    "breach_recall": 1.0,
+    "memo_hallucination_rate": 0.04
+  }
+]
