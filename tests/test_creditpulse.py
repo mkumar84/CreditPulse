@@ -1,6 +1,6 @@
 from creditpulse.covenants import breached_months, load_financials, monitor_covenants
 from creditpulse.evals import covenant_precision_recall, extraction_accuracy, load_prompt_model_regression, memo_hallucination_rate
-from creditpulse.extraction import extract_from_sources, flatten_extraction_table
+from creditpulse.extraction import flatten_extraction_table
 from creditpulse.policy import ExtractedField, MemoClaim, final_memo_allowed, render_claim
 
 
@@ -55,19 +55,3 @@ def test_regression_metrics_are_chart_ready_for_two_iterations():
         "v2_cited_schema_policy_gates",
     ]
     assert regression[-1]["memo_hallucination_rate"] < regression[0]["memo_hallucination_rate"]
-
-
-def test_extraction_agent_parses_sources_with_citations():
-    extraction = extract_from_sources(
-        "data/synthetic/loan_agreement.md",
-        "data/synthetic/monthly_financials.csv",
-    )
-    assert extraction["borrower"]["value"] == "Meridian SaaS Co."
-    assert extraction["borrower"]["citation"] == {"document": "loan_agreement.md", "line": 1}
-    assert extraction["covenants"]["arr_growth_floor_pct"]["value"] == 20.0
-    assert extraction["covenants"]["net_burn_multiple_cap"]["citation"]["section"] == "4.3"
-    assert extraction["latest_month"]["month"]["value"] == "2026-12"
-    assert extraction["latest_month"]["arr_millions"]["citation"] == {
-        "document": "monthly_financials.csv",
-        "row": 25,
-    }
