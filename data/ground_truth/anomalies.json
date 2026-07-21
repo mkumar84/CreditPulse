@@ -1,0 +1,9 @@
+{
+  "anomalies": [
+    {"month": "2026-04", "type": "revenue_restatement", "expected_flag": true},
+    {"month": "2026-07", "type": "genuine_covenant_breach", "expected_flag": true},
+    {"month": "2026-12", "type": "ambiguous_edge_case", "expected_flag": "human_review"}
+  ],
+  "breach_months": ["2026-07"],
+  "human_review_months": ["2026-12"]
+}
