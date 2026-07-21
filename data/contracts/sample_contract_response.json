@@ -1282,15 +1282,19 @@
         "n": 22
       },
       {
-        "field_name": "Committed MRR Interpretation",
+        "field_name": "Facility Size",
         "accuracy": 1.0,
-        "n": 1
+        "n": 1,
+        "citation": "loan_agreement.md \u00a74.1"
+      },
+      {
+        "field_name": "MAC-Style / Committed MRR Interpretation",
+        "accuracy": 1.0,
+        "n": 1,
+        "citation": "loan_agreement.md \u00a74.5"
       }
     ],
-    "missing_ground_truth": [
-      "facility_size",
-      "mac_style_interpretive_field"
-    ],
+    "missing_ground_truth": [],
     "regression": [
       {
         "iteration": "v1_raw_extraction",

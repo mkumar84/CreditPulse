@@ -164,9 +164,10 @@ def test_evals_payload_includes_breach_counts_and_field_accuracy():
         "ARR",
         "Cash Balance",
         "Burn Multiple",
-        "Committed MRR Interpretation",
+        "Facility Size",
+        "MAC-Style / Committed MRR Interpretation",
     }
-    assert "facility_size" in payload["missing_ground_truth"]
+    assert payload["missing_ground_truth"] == []
 
 
 def test_all_extraction_citations_include_confidence_scores():
@@ -178,3 +179,9 @@ def test_all_extraction_citations_include_confidence_scores():
     citations.extend(field["citation"] for field in payload["latest_month"].values())
     assert citations
     assert all(0.0 <= citation["confidence"] <= 1.0 for citation in citations)
+
+
+def test_missing_ground_truth_is_empty_after_field_truth_closure():
+    from creditpulse.api import build_evals_payload
+
+    assert build_evals_payload()["missing_ground_truth"] == []

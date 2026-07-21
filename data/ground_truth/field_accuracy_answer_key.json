@@ -1,0 +1,17 @@
+{
+  "facility_size": {
+    "display_name": "Facility Size",
+    "expected_value": 8.0,
+    "unit": "millions_usd",
+    "source_field": "minimum_liquidity_cash_millions",
+    "citation": "loan_agreement.md §4.1",
+    "n": 1
+  },
+  "mac_style_interpretive_field": {
+    "display_name": "MAC-Style / Committed MRR Interpretation",
+    "expected_judgment": "human_review_required",
+    "source_covenant": "committed_mrr_interpretation",
+    "citation": "loan_agreement.md §4.5",
+    "n": 1
+  }
+}

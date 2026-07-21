@@ -26,6 +26,7 @@ EXTRACTION_TABLE = ROOT / "data" / "synthetic" / "extraction_table.json"
 ANOMALIES = ROOT / "data" / "ground_truth" / "anomalies.json"
 EVAL_REGRESSION = ROOT / "data" / "ground_truth" / "eval_regression.json"
 EXTRACTION_ANSWER_KEY = ROOT / "data" / "ground_truth" / "extraction_answer_key.json"
+FIELD_ACCURACY_ANSWER_KEY = ROOT / "data" / "ground_truth" / "field_accuracy_answer_key.json"
 DEFAULT_ALLOWED_ORIGIN = "https://creditpulse.live"
 MEMO_MODEL_LABEL = "Claude API (memo drafter)"
 
@@ -61,10 +62,6 @@ FIELD_CONFIDENCE = {
     "nrr_pct": 0.99,
 }
 
-MISSING_FIELD_ACCURACY_GROUND_TRUTH = [
-    "facility_size",
-    "mac_style_interpretive_field",
-]
 
 
 def build_extraction_payload() -> dict[str, Any]:
@@ -124,7 +121,7 @@ def build_evals_payload() -> dict[str, Any]:
         },
         "breach_counts": breach_counts,
         "field_accuracy": _field_accuracy_rows(covenant_results),
-        "missing_ground_truth": MISSING_FIELD_ACCURACY_GROUND_TRUTH,
+        "missing_ground_truth": [],
         "regression": load_prompt_model_regression(EVAL_REGRESSION),
     }
 
@@ -215,13 +212,30 @@ def _breach_counts(results: list[CovenantResult]) -> dict[str, int]:
 def _field_accuracy_rows(results: list[CovenantResult]) -> list[dict[str, Any]]:
     financials = load_financials(FINANCIALS)
     burn_multiple_results = [result for result in results if result.covenant == "net_burn_multiple_cap"]
+    field_truth = json.loads(FIELD_ACCURACY_ANSWER_KEY.read_text())
+    extracted_fields = flatten_extraction_table(EXTRACTION_TABLE)
+    facility_truth = field_truth["facility_size"]
+    facility_actual = extracted_fields[facility_truth["source_field"]].value
+    committed_mrr_result = next(result for result in results if result.covenant == "committed_mrr_interpretation")
+    committed_mrr_actual = "human_review_required" if committed_mrr_result.human_review else "auto_include"
     return [
         {"field_name": "ARR", "accuracy": 1.0, "n": len(financials)},
         {"field_name": "MRR", "accuracy": 1.0, "n": len(financials)},
         {"field_name": "Gross Churn %", "accuracy": 1.0, "n": len(financials)},
         {"field_name": "Cash Balance", "accuracy": 1.0, "n": len(financials)},
         {"field_name": "Burn Multiple", "accuracy": 1.0, "n": len(burn_multiple_results)},
-        {"field_name": "Committed MRR Interpretation", "accuracy": 1.0, "n": 1},
+        {
+            "field_name": facility_truth["display_name"],
+            "accuracy": 1.0 if facility_actual == facility_truth["expected_value"] else 0.0,
+            "n": facility_truth["n"],
+            "citation": facility_truth["citation"],
+        },
+        {
+            "field_name": field_truth["mac_style_interpretive_field"]["display_name"],
+            "accuracy": 1.0 if committed_mrr_actual == field_truth["mac_style_interpretive_field"]["expected_judgment"] else 0.0,
+            "n": field_truth["mac_style_interpretive_field"]["n"],
+            "citation": field_truth["mac_style_interpretive_field"]["citation"],
+        },
     ]
 
 
