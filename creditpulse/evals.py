@@ -30,7 +30,6 @@ def memo_hallucination_rate(claims: list[MemoClaim], fields: dict[str, Extracted
     return unsupported / len(claims) if claims else 0.0
 
 
-PROMPT_MODEL_REGRESSION = [
-    {"iteration": "v1_raw_extraction", "extraction_accuracy": 0.86, "breach_recall": 1.00, "memo_hallucination_rate": 0.18},
-    {"iteration": "v2_cited_schema", "extraction_accuracy": 0.96, "breach_recall": 1.00, "memo_hallucination_rate": 0.04},
-]
+def load_prompt_model_regression(path: str | Path) -> list[dict[str, object]]:
+    """Load chart-ready eval metrics for prompt/model regression views."""
+    return json.loads(Path(path).read_text())

@@ -1,5 +1,6 @@
 from creditpulse.covenants import breached_months, load_financials, monitor_covenants
-from creditpulse.evals import covenant_precision_recall, memo_hallucination_rate
+from creditpulse.evals import covenant_precision_recall, extraction_accuracy, load_prompt_model_regression, memo_hallucination_rate
+from creditpulse.extraction import flatten_extraction_table
 from creditpulse.policy import ExtractedField, MemoClaim, final_memo_allowed, render_claim
 
 
@@ -13,7 +14,7 @@ def test_covenant_eval_precision_recall_uses_ground_truth():
     results = monitor_covenants(load_financials("data/synthetic/monthly_financials.csv"))
     metrics = covenant_precision_recall(results, "data/ground_truth/anomalies.json")
     assert metrics["recall"] == 1.0
-    assert metrics["precision"] > 0
+    assert metrics["precision"] == 1.0
 
 
 def test_policy_gates_render_unsupported_claims_for_review():
@@ -28,3 +29,29 @@ def test_policy_gates_render_unsupported_claims_for_review():
 def test_breach_requires_human_review_before_final_memo():
     assert not final_memo_allowed(has_breach=True, human_review_complete=False)
     assert final_memo_allowed(has_breach=True, human_review_complete=True)
+
+
+def test_extraction_fixture_is_cited_and_scores_against_answer_key():
+    fields = flatten_extraction_table("data/synthetic/extraction_table.json")
+    expected = {
+        "borrower": "Meridian SaaS Co.",
+        "minimum_liquidity_cash_millions": 8.0,
+        "minimum_cash_runway_months": 4.0,
+        "arr_growth_floor_pct": 20.0,
+        "net_burn_multiple_cap": 1.5,
+        "nrr_floor_pct": 100.0,
+        "latest_month": "2026-12",
+        "latest_arr_millions": 36.5,
+        "latest_cash_balance_millions": 10.2,
+        "latest_nrr_pct": 110.0,
+    }
+    assert extraction_accuracy(list(fields.values()), expected) == 1.0
+
+
+def test_regression_metrics_are_chart_ready_for_two_iterations():
+    regression = load_prompt_model_regression("data/ground_truth/eval_regression.json")
+    assert [row["iteration"] for row in regression] == [
+        "v1_raw_extraction",
+        "v2_cited_schema_policy_gates",
+    ]
+    assert regression[-1]["memo_hallucination_rate"] < regression[0]["memo_hallucination_rate"]

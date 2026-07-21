@@ -18,7 +18,7 @@ python -m pytest
 python -m creditpulse.run_demo
 ```
 
-The demo prints extraction accuracy, covenant precision/recall, memo hallucination rate, and prompt/model iteration metrics derived from static fixtures.
+The demo prints extraction accuracy, covenant precision/recall, memo hallucination rate, and prompt/model iteration metrics derived from static, cited fixtures. The extraction table is stored as JSON so every demo metric is reproducible and traceable to a source document or CSV row.
 
 ## Project structure
 
