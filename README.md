@@ -40,3 +40,6 @@ python -m creditpulse.api
 ```
 
 Available endpoints are `/health`, `/extraction`, `/covenants`, `/memo`, `/evals`, and `/contract`. The API is backend-only and is intended to feed the existing Lovable dashboard.
+
+
+CORS defaults to `https://creditpulse.live` and can be overridden with `CREDITPULSE_ALLOWED_ORIGIN` for staging. A raw aggregate sample is versioned at `data/contracts/sample_contract_response.json` for frontend field-name checks before wiring the live API.

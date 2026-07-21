@@ -80,6 +80,7 @@ def test_api_contract_payload_exposes_frontend_sections():
     assert set(payload) == {"extraction", "covenants", "memo", "evals"}
     assert payload["extraction"]["borrower"]["value"] == "Meridian SaaS Co."
     assert payload["covenants"]["breach_months"] == ["2026-07"]
+    assert payload["memo"]["model_label"] == "Claude API (memo drafter)"
     assert payload["memo"]["status"] == "human_review_required"
     assert payload["evals"]["summary_cards"]["covenant_breach_precision"] == 1.0
 
@@ -93,3 +94,87 @@ def test_api_payload_keeps_computed_values_separate_from_annotations():
     ]
     assert restatement_rows
     assert all("computed_value" in row and "llm_annotation" in row for row in restatement_rows)
+
+
+def test_rejects_claim_citing_nonexistent_extraction_field():
+    fields = {"arr": ExtractedField("arr", 36.5, "monthly_financials.csv:2026-12")}
+    unsupported = MemoClaim("Bookings accelerated.", ("bookings",))
+    assert render_claim(unsupported, fields).startswith("[NEEDS REVIEW]")
+
+
+def test_unsupported_claim_is_flagged_needs_review():
+    from creditpulse.api import build_memo_payload
+
+    payload = build_memo_payload()
+    unsupported_claims = [claim for claim in payload["claims"] if "Pipeline conversion" in claim["text"]]
+    assert unsupported_claims
+    assert unsupported_claims[0]["rendered_text"] == "[NEEDS REVIEW] Pipeline conversion improved materially."
+    assert unsupported_claims[0]["field_names"] == ["pipeline_conversion"]
+    assert unsupported_claims[0]["source_note"] == "No source — flagged as needs review"
+    assert unsupported_claims[0]["needs_review"] is True
+
+
+def test_api_cors_defaults_to_creditpulse_live():
+    from creditpulse.api import DEFAULT_ALLOWED_ORIGIN
+
+    assert DEFAULT_ALLOWED_ORIGIN == "https://creditpulse.live"
+
+
+def test_extraction_payload_includes_confidence_and_monthly_series():
+    from creditpulse.api import build_extraction_payload
+
+    payload = build_extraction_payload()
+    assert payload["borrower"]["citation"]["confidence"] == 0.99
+    assert payload["covenants"]["net_burn_multiple_cap"]["citation"]["confidence"] == 0.98
+    assert len(payload["monthly_series"]) == 24
+    assert payload["monthly_series"][0] == {
+        "month": "2025-01",
+        "arr_millions": 18.0,
+        "mrr_millions": 1.5,
+        "churn_pct": 1.8,
+    }
+    assert payload["monthly_series"][-1]["month"] == "2026-12"
+
+
+def test_memo_payload_includes_four_sections_and_claim_sources():
+    from creditpulse.api import build_memo_payload
+
+    payload = build_memo_payload()
+    assert [section["section_name"] for section in payload["sections"]] == [
+        "Facility Summary",
+        "Operating Performance",
+        "Liquidity & Burn",
+        "Recommendation",
+    ]
+    assert len(payload["claims"]) == 8
+    sourced_claims = [claim for claim in payload["claims"] if not claim["needs_review"]]
+    assert all(claim["sources"] for claim in sourced_claims)
+
+
+def test_evals_payload_includes_breach_counts_and_field_accuracy():
+    from creditpulse.api import build_evals_payload
+
+    payload = build_evals_payload()
+    assert payload["breach_counts"] == {
+        "true_positive": 1,
+        "false_positive": 0,
+        "false_negative": 0,
+    }
+    assert {row["field_name"] for row in payload["field_accuracy"]} >= {
+        "ARR",
+        "Cash Balance",
+        "Burn Multiple",
+        "Committed MRR Interpretation",
+    }
+    assert "facility_size" in payload["missing_ground_truth"]
+
+
+def test_all_extraction_citations_include_confidence_scores():
+    from creditpulse.api import build_extraction_payload
+
+    payload = build_extraction_payload()
+    citations = [payload["borrower"]["citation"]]
+    citations.extend(field["citation"] for field in payload["covenants"].values())
+    citations.extend(field["citation"] for field in payload["latest_month"].values())
+    assert citations
+    assert all(0.0 <= citation["confidence"] <= 1.0 for citation in citations)
