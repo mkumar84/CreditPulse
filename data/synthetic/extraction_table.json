@@ -1,0 +1,35 @@
+{
+  "borrower": {
+    "value": "Meridian SaaS Co.",
+    "citation": {"document": "loan_agreement.md", "section": "title"}
+  },
+  "covenants": {
+    "minimum_liquidity_cash_millions": {
+      "value": 8.0,
+      "citation": {"document": "loan_agreement.md", "section": "4.1"}
+    },
+    "minimum_cash_runway_months": {
+      "value": 4.0,
+      "citation": {"document": "loan_agreement.md", "section": "4.1"}
+    },
+    "arr_growth_floor_pct": {
+      "value": 20.0,
+      "citation": {"document": "loan_agreement.md", "section": "4.2"}
+    },
+    "net_burn_multiple_cap": {
+      "value": 1.5,
+      "citation": {"document": "loan_agreement.md", "section": "4.3"}
+    },
+    "nrr_floor_pct": {
+      "value": 100.0,
+      "citation": {"document": "loan_agreement.md", "section": "4.4"}
+    }
+  },
+  "latest_month": {
+    "month": {"value": "2026-12", "citation": {"document": "monthly_financials.csv", "row": 25}},
+    "arr_millions": {"value": 36.5, "citation": {"document": "monthly_financials.csv", "row": 25}},
+    "mrr_millions": {"value": 3.04, "citation": {"document": "monthly_financials.csv", "row": 25}},
+    "cash_balance_millions": {"value": 10.2, "citation": {"document": "monthly_financials.csv", "row": 25}},
+    "nrr_pct": {"value": 110.0, "citation": {"document": "monthly_financials.csv", "row": 25}}
+  }
+}

@@ -1,0 +1,1313 @@
+{
+  "extraction": {
+    "borrower": {
+      "value": "Meridian SaaS Co.",
+      "citation": {
+        "document": "loan_agreement.md",
+        "line": 1,
+        "confidence": 0.99
+      }
+    },
+    "covenants": {
+      "minimum_liquidity_cash_millions": {
+        "value": 8.0,
+        "citation": {
+          "document": "loan_agreement.md",
+          "section": "4.1",
+          "line": 4,
+          "confidence": 0.99
+        }
+      },
+      "minimum_cash_runway_months": {
+        "value": 4.0,
+        "citation": {
+          "document": "loan_agreement.md",
+          "section": "4.1",
+          "line": 4,
+          "confidence": 0.99
+        }
+      },
+      "arr_growth_floor_pct": {
+        "value": 20.0,
+        "citation": {
+          "document": "loan_agreement.md",
+          "section": "4.2",
+          "line": 7,
+          "confidence": 0.98
+        }
+      },
+      "net_burn_multiple_cap": {
+        "value": 1.5,
+        "citation": {
+          "document": "loan_agreement.md",
+          "section": "4.3",
+          "line": 10,
+          "confidence": 0.98
+        }
+      },
+      "nrr_floor_pct": {
+        "value": 100.0,
+        "citation": {
+          "document": "loan_agreement.md",
+          "section": "4.4",
+          "line": 13,
+          "confidence": 0.98
+        }
+      }
+    },
+    "latest_month": {
+      "month": {
+        "value": "2026-12",
+        "citation": {
+          "document": "monthly_financials.csv",
+          "row": 25,
+          "confidence": 0.99
+        }
+      },
+      "arr_millions": {
+        "value": 36.5,
+        "citation": {
+          "document": "monthly_financials.csv",
+          "row": 25,
+          "confidence": 0.99
+        }
+      },
+      "mrr_millions": {
+        "value": 3.04,
+        "citation": {
+          "document": "monthly_financials.csv",
+          "row": 25,
+          "confidence": 0.99
+        }
+      },
+      "cash_balance_millions": {
+        "value": 10.2,
+        "citation": {
+          "document": "monthly_financials.csv",
+          "row": 25,
+          "confidence": 0.99
+        }
+      },
+      "nrr_pct": {
+        "value": 110.0,
+        "citation": {
+          "document": "monthly_financials.csv",
+          "row": 25,
+          "confidence": 0.99
+        }
+      }
+    },
+    "monthly_series": [
+      {
+        "month": "2025-01",
+        "arr_millions": 18.0,
+        "mrr_millions": 1.5,
+        "churn_pct": 1.8
+      },
+      {
+        "month": "2025-02",
+        "arr_millions": 18.7,
+        "mrr_millions": 1.56,
+        "churn_pct": 1.7
+      },
+      {
+        "month": "2025-03",
+        "arr_millions": 19.4,
+        "mrr_millions": 1.62,
+        "churn_pct": 1.8
+      },
+      {
+        "month": "2025-04",
+        "arr_millions": 20.2,
+        "mrr_millions": 1.68,
+        "churn_pct": 1.9
+      },
+      {
+        "month": "2025-05",
+        "arr_millions": 21.0,
+        "mrr_millions": 1.75,
+        "churn_pct": 1.8
+      },
+      {
+        "month": "2025-06",
+        "arr_millions": 21.9,
+        "mrr_millions": 1.83,
+        "churn_pct": 1.7
+      },
+      {
+        "month": "2025-07",
+        "arr_millions": 22.9,
+        "mrr_millions": 1.91,
+        "churn_pct": 1.8
+      },
+      {
+        "month": "2025-08",
+        "arr_millions": 23.8,
+        "mrr_millions": 1.98,
+        "churn_pct": 1.9
+      },
+      {
+        "month": "2025-09",
+        "arr_millions": 24.9,
+        "mrr_millions": 2.08,
+        "churn_pct": 1.8
+      },
+      {
+        "month": "2025-10",
+        "arr_millions": 25.9,
+        "mrr_millions": 2.16,
+        "churn_pct": 1.7
+      },
+      {
+        "month": "2025-11",
+        "arr_millions": 27.0,
+        "mrr_millions": 2.25,
+        "churn_pct": 1.8
+      },
+      {
+        "month": "2025-12",
+        "arr_millions": 28.2,
+        "mrr_millions": 2.35,
+        "churn_pct": 1.8
+      },
+      {
+        "month": "2026-01",
+        "arr_millions": 29.1,
+        "mrr_millions": 2.43,
+        "churn_pct": 1.9
+      },
+      {
+        "month": "2026-02",
+        "arr_millions": 30.0,
+        "mrr_millions": 2.5,
+        "churn_pct": 2.0
+      },
+      {
+        "month": "2026-03",
+        "arr_millions": 30.9,
+        "mrr_millions": 2.58,
+        "churn_pct": 2.1
+      },
+      {
+        "month": "2026-04",
+        "arr_millions": 30.4,
+        "mrr_millions": 2.53,
+        "churn_pct": 2.4
+      },
+      {
+        "month": "2026-05",
+        "arr_millions": 31.0,
+        "mrr_millions": 2.58,
+        "churn_pct": 2.5
+      },
+      {
+        "month": "2026-06",
+        "arr_millions": 31.4,
+        "mrr_millions": 2.62,
+        "churn_pct": 2.8
+      },
+      {
+        "month": "2026-07",
+        "arr_millions": 31.6,
+        "mrr_millions": 2.63,
+        "churn_pct": 3.2
+      },
+      {
+        "month": "2026-08",
+        "arr_millions": 33.0,
+        "mrr_millions": 2.75,
+        "churn_pct": 3.0
+      },
+      {
+        "month": "2026-09",
+        "arr_millions": 33.0,
+        "mrr_millions": 2.75,
+        "churn_pct": 2.7
+      },
+      {
+        "month": "2026-10",
+        "arr_millions": 34.0,
+        "mrr_millions": 2.83,
+        "churn_pct": 2.5
+      },
+      {
+        "month": "2026-11",
+        "arr_millions": 35.2,
+        "mrr_millions": 2.93,
+        "churn_pct": 2.3
+      },
+      {
+        "month": "2026-12",
+        "arr_millions": 36.5,
+        "mrr_millions": 3.04,
+        "churn_pct": 2.1
+      }
+    ]
+  },
+  "covenants": {
+    "as_of_month": "2026-12",
+    "breach_months": [
+      "2026-07"
+    ],
+    "human_review_months": [
+      "2026-04",
+      "2026-05",
+      "2026-06",
+      "2026-12"
+    ],
+    "results": [
+      {
+        "month": "2025-01",
+        "covenant": "minimum_liquidity_cash_runway",
+        "computed_value": 18.333333333333336,
+        "threshold": 4.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.1",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-01",
+        "covenant": "nrr_floor",
+        "computed_value": 116.0,
+        "threshold": 100.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.4",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-02",
+        "covenant": "minimum_liquidity_cash_runway",
+        "computed_value": 17.37704918032787,
+        "threshold": 4.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.1",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-02",
+        "covenant": "nrr_floor",
+        "computed_value": 116.0,
+        "threshold": 100.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.4",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-03",
+        "covenant": "minimum_liquidity_cash_runway",
+        "computed_value": 16.532258064516128,
+        "threshold": 4.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.1",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-03",
+        "covenant": "nrr_floor",
+        "computed_value": 115.0,
+        "threshold": 100.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.4",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-03",
+        "covenant": "net_burn_multiple_cap",
+        "computed_value": 0.6535714285714292,
+        "threshold": 1.5,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.3",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-04",
+        "covenant": "minimum_liquidity_cash_runway",
+        "computed_value": 15.919999999999998,
+        "threshold": 4.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.1",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-04",
+        "covenant": "nrr_floor",
+        "computed_value": 115.0,
+        "threshold": 100.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.4",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-04",
+        "covenant": "net_burn_multiple_cap",
+        "computed_value": 0.6183333333333333,
+        "threshold": 1.5,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.3",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-05",
+        "covenant": "minimum_liquidity_cash_runway",
+        "computed_value": 15.03937007874016,
+        "threshold": 4.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.1",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-05",
+        "covenant": "nrr_floor",
+        "computed_value": 114.0,
+        "threshold": 100.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.4",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-05",
+        "covenant": "net_burn_multiple_cap",
+        "computed_value": 0.5874999999999995,
+        "threshold": 1.5,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.3",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-06",
+        "covenant": "minimum_liquidity_cash_runway",
+        "computed_value": 14.453125,
+        "threshold": 4.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.1",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-06",
+        "covenant": "nrr_floor",
+        "computed_value": 114.0,
+        "threshold": 100.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.4",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-06",
+        "covenant": "net_burn_multiple_cap",
+        "computed_value": 0.5588235294117649,
+        "threshold": 1.5,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.3",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-07",
+        "covenant": "minimum_liquidity_cash_runway",
+        "computed_value": 13.692307692307692,
+        "threshold": 4.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.1",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-07",
+        "covenant": "nrr_floor",
+        "computed_value": 113.0,
+        "threshold": 100.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.4",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-07",
+        "covenant": "net_burn_multiple_cap",
+        "computed_value": 0.5065789473684215,
+        "threshold": 1.5,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.3",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-08",
+        "covenant": "minimum_liquidity_cash_runway",
+        "computed_value": 12.878787878787879,
+        "threshold": 4.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.1",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-08",
+        "covenant": "nrr_floor",
+        "computed_value": 113.0,
+        "threshold": 100.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.4",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-08",
+        "covenant": "net_burn_multiple_cap",
+        "computed_value": 0.5131578947368416,
+        "threshold": 1.5,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.3",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-09",
+        "covenant": "minimum_liquidity_cash_runway",
+        "computed_value": 12.238805970149253,
+        "threshold": 4.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.1",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-09",
+        "covenant": "nrr_floor",
+        "computed_value": 112.0,
+        "threshold": 100.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.4",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-09",
+        "covenant": "net_burn_multiple_cap",
+        "computed_value": 0.495,
+        "threshold": 1.5,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.3",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-10",
+        "covenant": "minimum_liquidity_cash_runway",
+        "computed_value": 11.691176470588236,
+        "threshold": 4.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.1",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-10",
+        "covenant": "nrr_floor",
+        "computed_value": 112.0,
+        "threshold": 100.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.4",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-10",
+        "covenant": "net_burn_multiple_cap",
+        "computed_value": 0.4785714285714291,
+        "threshold": 1.5,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.3",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-11",
+        "covenant": "minimum_liquidity_cash_runway",
+        "computed_value": 11.086956521739133,
+        "threshold": 4.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.1",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-11",
+        "covenant": "nrr_floor",
+        "computed_value": 111.0,
+        "threshold": 100.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.4",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-11",
+        "covenant": "net_burn_multiple_cap",
+        "computed_value": 0.4857142857142854,
+        "threshold": 1.5,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.3",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-12",
+        "covenant": "minimum_liquidity_cash_runway",
+        "computed_value": 10.5,
+        "threshold": 4.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.1",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-12",
+        "covenant": "nrr_floor",
+        "computed_value": 111.0,
+        "threshold": 100.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.4",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2025-12",
+        "covenant": "net_burn_multiple_cap",
+        "computed_value": 0.44999999999999984,
+        "threshold": 1.5,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.3",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-01",
+        "covenant": "minimum_liquidity_cash_runway",
+        "computed_value": 9.79020979020979,
+        "threshold": 4.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.1",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-01",
+        "covenant": "arr_growth_floor",
+        "computed_value": 61.66666666666667,
+        "threshold": 20.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.2",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-01",
+        "covenant": "nrr_floor",
+        "computed_value": 110.0,
+        "threshold": 100.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.4",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-01",
+        "covenant": "net_burn_multiple_cap",
+        "computed_value": 0.5011904761904759,
+        "threshold": 1.5,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.3",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-02",
+        "covenant": "minimum_liquidity_cash_runway",
+        "computed_value": 9.04109589041096,
+        "threshold": 4.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.1",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-02",
+        "covenant": "arr_growth_floor",
+        "computed_value": 60.427807486631025,
+        "threshold": 20.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.2",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-02",
+        "covenant": "nrr_floor",
+        "computed_value": 109.0,
+        "threshold": 100.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.4",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-02",
+        "covenant": "net_burn_multiple_cap",
+        "computed_value": 0.5958333333333331,
+        "threshold": 1.5,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.3",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-03",
+        "covenant": "minimum_liquidity_cash_runway",
+        "computed_value": 8.266666666666667,
+        "threshold": 4.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.1",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-03",
+        "covenant": "arr_growth_floor",
+        "computed_value": 59.27835051546392,
+        "threshold": 20.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.2",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-03",
+        "covenant": "nrr_floor",
+        "computed_value": 108.0,
+        "threshold": 100.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.4",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-03",
+        "covenant": "net_burn_multiple_cap",
+        "computed_value": 0.6097222222222232,
+        "threshold": 1.5,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.3",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-04",
+        "covenant": "minimum_liquidity_cash_runway",
+        "computed_value": 7.435897435897435,
+        "threshold": 4.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.1",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-04",
+        "covenant": "arr_growth_floor",
+        "computed_value": 50.495049504950494,
+        "threshold": 20.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.2",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-04",
+        "covenant": "nrr_floor",
+        "computed_value": 106.0,
+        "threshold": 100.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.4",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-04",
+        "covenant": "net_burn_multiple_cap",
+        "computed_value": 2.82500000000001,
+        "threshold": 1.5,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.3",
+        "llm_annotation": "Restatement period requires analyst validation before covenant action.",
+        "human_review": true
+      },
+      {
+        "month": "2026-05",
+        "covenant": "minimum_liquidity_cash_runway",
+        "computed_value": 6.604938271604937,
+        "threshold": 4.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.1",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-05",
+        "covenant": "arr_growth_floor",
+        "computed_value": 47.61904761904761,
+        "threshold": 20.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.2",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-05",
+        "covenant": "nrr_floor",
+        "computed_value": 105.0,
+        "threshold": 100.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.4",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-05",
+        "covenant": "net_burn_multiple_cap",
+        "computed_value": 11.699999999999832,
+        "threshold": 1.5,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.3",
+        "llm_annotation": "Restatement period requires analyst validation before covenant action.",
+        "human_review": true
+      },
+      {
+        "month": "2026-06",
+        "covenant": "minimum_liquidity_cash_runway",
+        "computed_value": 5.647058823529412,
+        "threshold": 4.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.1",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-06",
+        "covenant": "arr_growth_floor",
+        "computed_value": 43.37899543378996,
+        "threshold": 20.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.2",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-06",
+        "covenant": "nrr_floor",
+        "computed_value": 103.0,
+        "threshold": 100.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.4",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-06",
+        "covenant": "net_burn_multiple_cap",
+        "computed_value": 1.22,
+        "threshold": 1.5,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.3",
+        "llm_annotation": "Restatement period requires analyst validation before covenant action.",
+        "human_review": true
+      },
+      {
+        "month": "2026-07",
+        "covenant": "minimum_liquidity_cash_runway",
+        "computed_value": 3.794871794871795,
+        "threshold": 4.0,
+        "breached": true,
+        "citation": "loan_agreement.md \u00a74.1",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-07",
+        "covenant": "arr_growth_floor",
+        "computed_value": 37.99126637554587,
+        "threshold": 20.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.2",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-07",
+        "covenant": "nrr_floor",
+        "computed_value": 99.0,
+        "threshold": 100.0,
+        "breached": true,
+        "citation": "loan_agreement.md \u00a74.4",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-07",
+        "covenant": "net_burn_multiple_cap",
+        "computed_value": 2.195833333333328,
+        "threshold": 1.5,
+        "breached": true,
+        "citation": "loan_agreement.md \u00a74.3",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-08",
+        "covenant": "minimum_liquidity_cash_runway",
+        "computed_value": 4.510869565217392,
+        "threshold": 4.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.1",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-08",
+        "covenant": "arr_growth_floor",
+        "computed_value": 38.65546218487395,
+        "threshold": 20.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.2",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-08",
+        "covenant": "nrr_floor",
+        "computed_value": 101.0,
+        "threshold": 100.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.4",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-08",
+        "covenant": "net_burn_multiple_cap",
+        "computed_value": 0.8578124999999993,
+        "threshold": 1.5,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.3",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-09",
+        "covenant": "minimum_liquidity_cash_runway",
+        "computed_value": 4.764705882352941,
+        "threshold": 4.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.1",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-09",
+        "covenant": "arr_growth_floor",
+        "computed_value": 32.53012048192772,
+        "threshold": 20.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.2",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-09",
+        "covenant": "nrr_floor",
+        "computed_value": 104.0,
+        "threshold": 100.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.4",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-09",
+        "covenant": "net_burn_multiple_cap",
+        "computed_value": 0.9803571428571439,
+        "threshold": 1.5,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.3",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-10",
+        "covenant": "minimum_liquidity_cash_runway",
+        "computed_value": 5.308641975308642,
+        "threshold": 4.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.1",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-10",
+        "covenant": "arr_growth_floor",
+        "computed_value": 31.274131274131285,
+        "threshold": 20.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.2",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-10",
+        "covenant": "nrr_floor",
+        "computed_value": 106.0,
+        "threshold": 100.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.4",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-10",
+        "covenant": "net_burn_multiple_cap",
+        "computed_value": 1.29,
+        "threshold": 1.5,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.3",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-11",
+        "covenant": "minimum_liquidity_cash_runway",
+        "computed_value": 6.064516129032258,
+        "threshold": 4.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.1",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-11",
+        "covenant": "arr_growth_floor",
+        "computed_value": 30.37037037037038,
+        "threshold": 20.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.2",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-11",
+        "covenant": "nrr_floor",
+        "computed_value": 108.0,
+        "threshold": 100.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.4",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-11",
+        "covenant": "net_burn_multiple_cap",
+        "computed_value": 0.5534090909090902,
+        "threshold": 1.5,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.3",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-12",
+        "covenant": "minimum_liquidity_cash_runway",
+        "computed_value": 6.8,
+        "threshold": 4.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.1",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-12",
+        "covenant": "arr_growth_floor",
+        "computed_value": 29.432624113475182,
+        "threshold": 20.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.2",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-12",
+        "covenant": "nrr_floor",
+        "computed_value": 110.0,
+        "threshold": 100.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.4",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-12",
+        "covenant": "net_burn_multiple_cap",
+        "computed_value": 0.46699999999999997,
+        "threshold": 1.5,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.3",
+        "llm_annotation": null,
+        "human_review": false
+      },
+      {
+        "month": "2026-12",
+        "covenant": "committed_mrr_interpretation",
+        "computed_value": 3.04,
+        "threshold": 0.0,
+        "breached": false,
+        "citation": "loan_agreement.md \u00a74.5",
+        "llm_annotation": "Verbal approval is not countersigned; require human review before including committed MRR.",
+        "human_review": true
+      }
+    ]
+  },
+  "memo": {
+    "model_label": "Claude API (memo drafter)",
+    "status": "human_review_required",
+    "final_allowed": false,
+    "sections": [
+      {
+        "section_name": "Facility Summary",
+        "text": "Meridian SaaS Co. is monitored under a $8.0 million minimum liquidity covenant and a 4.0 month cash runway covenant."
+      },
+      {
+        "section_name": "Operating Performance",
+        "text": "December ARR was $36.5 million and December MRR was $3.04 million. December net revenue retention was 110.0%."
+      },
+      {
+        "section_name": "Liquidity & Burn",
+        "text": "July 2026 triggered a covenant breach that requires human review before finalization. December cash balance was $10.2 million. December net burn multiple was 0.467x versus a 1.50x cap."
+      },
+      {
+        "section_name": "Recommendation",
+        "text": "Recommend keeping the memo in human review until the July breach is acknowledged. [NEEDS REVIEW] Pipeline conversion improved materially."
+      }
+    ],
+    "claims": [
+      {
+        "text": "Meridian SaaS Co. is monitored under a $8.0 million minimum liquidity covenant and a 4.0 month cash runway covenant.",
+        "rendered_text": "Meridian SaaS Co. is monitored under a $8.0 million minimum liquidity covenant and a 4.0 month cash runway covenant.",
+        "field_names": [
+          "borrower",
+          "minimum_liquidity_cash_millions",
+          "minimum_cash_runway_months"
+        ],
+        "sources": [
+          {
+            "field_name": "borrower",
+            "citation": "loan_agreement.md \u00a7title"
+          },
+          {
+            "field_name": "minimum_liquidity_cash_millions",
+            "citation": "loan_agreement.md \u00a74.1"
+          },
+          {
+            "field_name": "minimum_cash_runway_months",
+            "citation": "loan_agreement.md \u00a74.1"
+          }
+        ],
+        "source_note": null,
+        "needs_review": false
+      },
+      {
+        "text": "December ARR was $36.5 million and December MRR was $3.04 million.",
+        "rendered_text": "December ARR was $36.5 million and December MRR was $3.04 million.",
+        "field_names": [
+          "latest_arr_millions",
+          "latest_mrr_millions"
+        ],
+        "sources": [
+          {
+            "field_name": "latest_arr_millions",
+            "citation": "monthly_financials.csv row 25"
+          },
+          {
+            "field_name": "latest_mrr_millions",
+            "citation": "monthly_financials.csv row 25"
+          }
+        ],
+        "source_note": null,
+        "needs_review": false
+      },
+      {
+        "text": "December net revenue retention was 110.0%.",
+        "rendered_text": "December net revenue retention was 110.0%.",
+        "field_names": [
+          "latest_nrr_pct"
+        ],
+        "sources": [
+          {
+            "field_name": "latest_nrr_pct",
+            "citation": "monthly_financials.csv row 25"
+          }
+        ],
+        "source_note": null,
+        "needs_review": false
+      },
+      {
+        "text": "July 2026 triggered a covenant breach that requires human review before finalization.",
+        "rendered_text": "July 2026 triggered a covenant breach that requires human review before finalization.",
+        "field_names": [
+          "latest_month"
+        ],
+        "sources": [
+          {
+            "field_name": "latest_month",
+            "citation": "monthly_financials.csv row 25"
+          }
+        ],
+        "source_note": null,
+        "needs_review": false
+      },
+      {
+        "text": "December cash balance was $10.2 million.",
+        "rendered_text": "December cash balance was $10.2 million.",
+        "field_names": [
+          "latest_cash_balance_millions"
+        ],
+        "sources": [
+          {
+            "field_name": "latest_cash_balance_millions",
+            "citation": "monthly_financials.csv row 25"
+          }
+        ],
+        "source_note": null,
+        "needs_review": false
+      },
+      {
+        "text": "December net burn multiple was 0.467x versus a 1.50x cap.",
+        "rendered_text": "December net burn multiple was 0.467x versus a 1.50x cap.",
+        "field_names": [
+          "net_burn_multiple_cap"
+        ],
+        "sources": [
+          {
+            "field_name": "net_burn_multiple_cap",
+            "citation": "loan_agreement.md \u00a74.3"
+          }
+        ],
+        "source_note": null,
+        "needs_review": false
+      },
+      {
+        "text": "Recommend keeping the memo in human review until the July breach is acknowledged.",
+        "rendered_text": "Recommend keeping the memo in human review until the July breach is acknowledged.",
+        "field_names": [
+          "latest_month"
+        ],
+        "sources": [
+          {
+            "field_name": "latest_month",
+            "citation": "monthly_financials.csv row 25"
+          }
+        ],
+        "source_note": null,
+        "needs_review": false
+      },
+      {
+        "text": "Pipeline conversion improved materially.",
+        "rendered_text": "[NEEDS REVIEW] Pipeline conversion improved materially.",
+        "field_names": [
+          "pipeline_conversion"
+        ],
+        "sources": [],
+        "source_note": "No source \u2014 flagged as needs review",
+        "needs_review": true
+      }
+    ]
+  },
+  "evals": {
+    "summary_cards": {
+      "extraction_accuracy": 1.0,
+      "covenant_breach_precision": 1.0,
+      "covenant_breach_recall": 1.0,
+      "memo_hallucination_rate": 0.125
+    },
+    "breach_counts": {
+      "true_positive": 1,
+      "false_positive": 0,
+      "false_negative": 0
+    },
+    "field_accuracy": [
+      {
+        "field_name": "ARR",
+        "accuracy": 1.0,
+        "n": 24
+      },
+      {
+        "field_name": "MRR",
+        "accuracy": 1.0,
+        "n": 24
+      },
+      {
+        "field_name": "Gross Churn %",
+        "accuracy": 1.0,
+        "n": 24
+      },
+      {
+        "field_name": "Cash Balance",
+        "accuracy": 1.0,
+        "n": 24
+      },
+      {
+        "field_name": "Burn Multiple",
+        "accuracy": 1.0,
+        "n": 22
+      },
+      {
+        "field_name": "Committed MRR Interpretation",
+        "accuracy": 1.0,
+        "n": 1
+      }
+    ],
+    "missing_ground_truth": [
+      "facility_size",
+      "mac_style_interpretive_field"
+    ],
+    "regression": [
+      {
+        "iteration": "v1_raw_extraction",
+        "model_profile": "lightweight extraction + high-stakes memo draft",
+        "extraction_accuracy": 0.86,
+        "breach_precision": 0.67,
+        "breach_recall": 1.0,
+        "memo_hallucination_rate": 0.18
+      },
+      {
+        "iteration": "v2_cited_schema_policy_gates",
+        "model_profile": "cited extraction schema + deterministic monitor + source-gated memo",
+        "extraction_accuracy": 0.96,
+        "breach_precision": 1.0,
+        "breach_recall": 1.0,
+        "memo_hallucination_rate": 0.04
+      }
+    ]
+  }
+}
