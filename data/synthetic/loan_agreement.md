@@ -1,5 +1,8 @@
 # Meridian SaaS Co. Loan Agreement Excerpt
 
+## Section 1.1 Committed Facility Amount
+Lender commits to make available to Borrower a senior secured term loan facility in an aggregate principal amount of up to $15.0 million (the "Facility"), subject to the terms, conditions, and covenants set forth in this Agreement.
+
 ## Section 4.1 Minimum Liquidity / Cash Runway
 Borrower shall maintain at least $8.0 million of unrestricted cash and at least 4.0 months of cash runway, calculated as unrestricted cash divided by latest monthly gross burn.
 

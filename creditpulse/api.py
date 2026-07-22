@@ -31,6 +31,7 @@ ANOMALIES = ROOT / "data" / "ground_truth" / "anomalies.json"
 EVAL_REGRESSION = ROOT / "data" / "ground_truth" / "eval_regression.json"
 EXTRACTION_ANSWER_KEY = ROOT / "data" / "ground_truth" / "extraction_answer_key.json"
 FIELD_ACCURACY_ANSWER_KEY = ROOT / "data" / "ground_truth" / "field_accuracy_answer_key.json"
+MONTHLY_METRICS_ANSWER_KEY = ROOT / "data" / "ground_truth" / "monthly_metrics_answer_key.json"
 DEFAULT_ALLOWED_ORIGIN = "https://creditpulse.live"
 LIVE_MEMO_MODEL_LABEL = "Claude API (memo drafter)"
 FALLBACK_MEMO_MODEL_LABEL = "Claude API (memo drafter) — deterministic fallback, no live key"
@@ -235,21 +236,31 @@ def _breach_counts(results: list[CovenantResult]) -> dict[str, int]:
     }
 
 
+# Monthly pass-through fields (arr/mrr/churn/cash) are read from the CSV with
+# no transformation, so an exact-equality tolerance is enough to catch a real
+# parsing bug. Burn multiple involves real arithmetic (quarterly aggregation,
+# annualization), so its tolerance only needs to absorb the JSON round-trip
+# of the 6-decimal-rounded ground truth value, not a computation error.
+MONTHLY_METRIC_TOLERANCE = 1e-6
+BURN_MULTIPLE_TOLERANCE = 1e-4
+
+
 def _field_accuracy_rows(results: list[CovenantResult]) -> list[dict[str, Any]]:
     financials = load_financials(FINANCIALS)
-    burn_multiple_results = [result for result in results if result.covenant == "net_burn_multiple_cap"]
     field_truth = json.loads(FIELD_ACCURACY_ANSWER_KEY.read_text())
+    monthly_truth = json.loads(MONTHLY_METRICS_ANSWER_KEY.read_text())
     extracted_fields = flatten_extraction_table(EXTRACTION_TABLE)
     facility_truth = field_truth["facility_size"]
     facility_actual = extracted_fields[facility_truth["source_field"]].value
     committed_mrr_result = next(result for result in results if result.covenant == "committed_mrr_interpretation")
     committed_mrr_actual = "human_review_required" if committed_mrr_result.human_review else "auto_include"
+    burn_multiple_actual = {result.month: result.computed_value for result in results if result.covenant == "net_burn_multiple_cap"}
     return [
-        {"field_name": "ARR", "accuracy": 1.0, "n": len(financials)},
-        {"field_name": "MRR", "accuracy": 1.0, "n": len(financials)},
-        {"field_name": "Gross Churn %", "accuracy": 1.0, "n": len(financials)},
-        {"field_name": "Cash Balance", "accuracy": 1.0, "n": len(financials)},
-        {"field_name": "Burn Multiple", "accuracy": 1.0, "n": len(burn_multiple_results)},
+        _scored_monthly_field("ARR", "arr_millions", financials, monthly_truth),
+        _scored_monthly_field("MRR", "mrr_millions", financials, monthly_truth),
+        _scored_monthly_field("Gross Churn %", "churn_pct", financials, monthly_truth),
+        _scored_monthly_field("Cash Balance", "cash_balance_millions", financials, monthly_truth),
+        _scored_burn_multiple(burn_multiple_actual, monthly_truth["burn_multiple"]),
         {
             "field_name": facility_truth["display_name"],
             "accuracy": 1.0 if facility_actual == facility_truth["expected_value"] else 0.0,
@@ -263,6 +274,40 @@ def _field_accuracy_rows(results: list[CovenantResult]) -> list[dict[str, Any]]:
             "citation": field_truth["mac_style_interpretive_field"]["citation"],
         },
     ]
+
+
+def _scored_monthly_field(
+    display_name: str, attr: str, financials: list[MonthlyFinancial], monthly_truth: dict[str, Any]
+) -> dict[str, Any]:
+    """Score a raw pass-through field against data/ground_truth/monthly_metrics_answer_key.json.
+
+    That file is transcribed directly from monthly_financials.csv as originally
+    authored, independently of build_extraction_payload()'s read path — so this
+    is a real comparison, not a restatement of what the code already outputs.
+    """
+    truth_by_month = monthly_truth["months"]
+    matches = sum(
+        1 for row in financials if abs(getattr(row, attr) - truth_by_month[row.month][attr]) < MONTHLY_METRIC_TOLERANCE
+    )
+    return {"field_name": display_name, "accuracy": matches / len(financials), "n": len(financials)}
+
+
+def _scored_burn_multiple(actual_by_month: dict[str, float], truth_by_month: dict[str, float | None]) -> dict[str, Any]:
+    """Score covenants.py's computed burn multiple against an independently re-derived value per month.
+
+    monthly_truth["burn_multiple"] was computed fresh from loan_agreement.md
+    §4.3's formula rather than by importing monitor_covenants(), so this can
+    catch a real bug in that function rather than just restate its output.
+    """
+    matches = sum(1 for month, actual in actual_by_month.items() if _burn_multiple_matches(actual, truth_by_month.get(month)))
+    accuracy = matches / len(actual_by_month) if actual_by_month else 1.0
+    return {"field_name": "Burn Multiple", "accuracy": accuracy, "n": len(actual_by_month)}
+
+
+def _burn_multiple_matches(actual: float, expected: float | None) -> bool:
+    if expected is None:
+        return actual == float("inf")
+    return abs(actual - expected) < BURN_MULTIPLE_TOLERANCE
 
 
 def _serialize_covenant_result(result: CovenantResult) -> dict[str, Any]:

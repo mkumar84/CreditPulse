@@ -1,11 +1,14 @@
 {
   "facility_size": {
     "display_name": "Facility Size",
-    "expected_value": 8.0,
+    "expected_value": 15.0,
     "unit": "millions_usd",
-    "source_field": "minimum_liquidity_cash_millions",
-    "citation": "loan_agreement.md §4.1",
-    "n": 1
+    "source_field": "facility_size_millions",
+    "citation": "loan_agreement.md §1.1",
+    "n": 1,
+    "rationale": "loan_agreement.md §1.1: 'Lender commits to make available to Borrower a senior secured term loan facility in an aggregate principal amount of up to $15.0 million.' This is the actual committed loan facility amount, distinct from the §4.1 minimum-liquidity covenant threshold ($8.0 million) this field was previously (incorrectly) pointed at.",
+    "provenance_note": "§1.1 and this $15.0 million figure did not exist anywhere in the repository before 2026-07-22 — confirmed by grepping all docs, data files, the original mocked contract (data/contracts/sample_contract_response.json), and git history, none of which stated a facility principal amount. The field was previously mislabeled: its citation pointed at §4.1 (the liquidity covenant) and its value (8.0) was simply copied from that covenant's threshold, not from an actual facility-size figure. §1.1 was added as a new, explicit clause to loan_agreement.md specifically to give this field a real source to cite, per an explicit human instruction specifying the $15.0 million value. Anyone auditing this field should know the source document was authored to match this ground truth entry, not the reverse — the number is not independently corroborated outside this repository.",
+    "caveat": "n=1, single static value — this check can only ever score 1.0 or 0.0 for the one figure in the fixture, and cannot catch subtler errors (e.g. off-by-one unit mistakes) the way a multi-instance field could."
   },
   "mac_style_interpretive_field": {
     "display_name": "MAC-Style / Committed MRR Interpretation",

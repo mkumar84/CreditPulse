@@ -36,6 +36,11 @@ def flatten_extraction_table(path: str | Path) -> dict[str, ExtractedField]:
     table = json.loads(Path(path).read_text())
     fields: dict[str, ExtractedField] = {
         "borrower": ExtractedField("borrower", table["borrower"]["value"], citation_to_text(table["borrower"]["citation"])),
+        "facility_size_millions": ExtractedField(
+            "facility_size_millions",
+            table["facility_size_millions"]["value"],
+            citation_to_text(table["facility_size_millions"]["citation"]),
+        ),
     }
     for name, payload in table["covenants"].items():
         fields[name] = ExtractedField(name, payload["value"], citation_to_text(payload["citation"]))
