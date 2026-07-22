@@ -19,3 +19,7 @@ The frontend dashboard already exists as a separate Lovable app, so this backend
 ## Step 7 progress
 
 `creditpulse.api` now provides backend-only JSON payload builders and a standard-library HTTP server with `/health`, `/extraction`, `/covenants`, `/memo`, `/evals`, and `/contract` endpoints. Follow-up after Railway deployment: point the existing Lovable app from its mocked JSON file to these live endpoints.
+
+## Step 8: live memo drafter
+
+`/memo` now drafts claims with a live Claude API call (`creditpulse.memo_drafter`, model `claude-sonnet-5`, structured JSON output) when `ANTHROPIC_API_KEY` is set, and falls back to a deterministic claim set otherwise. Every claim — live or fallback — still passes through the existing `creditpulse.policy.render_claim` gate, so a hallucinated field reference is flagged `[NEEDS REVIEW]` regardless of where the claim came from. Requires `ANTHROPIC_API_KEY` on Railway; `requirements.txt` now pins the `anthropic` SDK.

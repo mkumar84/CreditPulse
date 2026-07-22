@@ -1,9 +1,12 @@
 """Backend JSON contract for the existing CreditPulse Lovable frontend.
 
-This module deliberately uses the Python standard library so the Railway-facing
-API can run in this small portfolio repo without adding framework dependencies.
-The endpoint payload builders are pure functions and are covered by tests; the
-HTTP server is a thin adapter around those builders.
+The HTTP server itself uses only the Python standard library, so the
+Railway-facing API can run in this small portfolio repo without a web
+framework dependency. The memo drafter is the one payload builder that calls
+out to the Claude API (see creditpulse.memo_drafter) when ANTHROPIC_API_KEY
+is set, falling back to a deterministic claim set otherwise. The endpoint
+payload builders are pure functions and are covered by tests; the HTTP
+server is a thin adapter around those builders.
 """
 
 from __future__ import annotations
@@ -17,6 +20,7 @@ from typing import Any
 from creditpulse.covenants import CovenantResult, MonthlyFinancial, load_financials, monitor_covenants
 from creditpulse.evals import covenant_precision_recall, extraction_accuracy, load_prompt_model_regression, memo_hallucination_rate
 from creditpulse.extraction import extract_from_sources, flatten_extraction_table
+from creditpulse.memo_drafter import MEMO_SECTIONS, draft_memo_claims
 from creditpulse.policy import MemoClaim, final_memo_allowed, render_claim
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -28,9 +32,13 @@ EVAL_REGRESSION = ROOT / "data" / "ground_truth" / "eval_regression.json"
 EXTRACTION_ANSWER_KEY = ROOT / "data" / "ground_truth" / "extraction_answer_key.json"
 FIELD_ACCURACY_ANSWER_KEY = ROOT / "data" / "ground_truth" / "field_accuracy_answer_key.json"
 DEFAULT_ALLOWED_ORIGIN = "https://creditpulse.live"
-MEMO_MODEL_LABEL = "Claude API (memo drafter)"
+LIVE_MEMO_MODEL_LABEL = "Claude API (memo drafter)"
+FALLBACK_MEMO_MODEL_LABEL = "Claude API (memo drafter) — deterministic fallback, no live key"
 
-MEMO_CLAIMS = [
+# Used when ANTHROPIC_API_KEY is unset or the live call fails. Every claim
+# here (including the deliberately uncited "Pipeline conversion" one) still
+# passes through the same render_claim() policy gate as a live-drafted claim.
+FALLBACK_MEMO_CLAIMS = [
     MemoClaim("Meridian SaaS Co. is monitored under a $8.0 million minimum liquidity covenant and a 4.0 month cash runway covenant.", ("borrower", "minimum_liquidity_cash_millions", "minimum_cash_runway_months")),
     MemoClaim("December ARR was $36.5 million and December MRR was $3.04 million.", ("latest_arr_millions", "latest_mrr_millions")),
     MemoClaim("December net revenue retention was 110.0%.", ("latest_nrr_pct",)),
@@ -41,12 +49,12 @@ MEMO_CLAIMS = [
     MemoClaim("Pipeline conversion improved materially.", ("pipeline_conversion",)),
 ]
 
-MEMO_SECTION_CLAIM_INDEXES = {
-    "Facility Summary": [0],
-    "Operating Performance": [1, 2],
-    "Liquidity & Burn": [3, 4, 5],
-    "Recommendation": [6, 7],
-}
+FALLBACK_MEMO_SECTIONS = [
+    "Facility Summary",
+    "Operating Performance", "Operating Performance",
+    "Liquidity & Burn", "Liquidity & Burn", "Liquidity & Burn",
+    "Recommendation", "Recommendation",
+]
 
 FIELD_CONFIDENCE = {
     "borrower": 0.99,
@@ -84,22 +92,40 @@ def build_covenant_payload() -> dict[str, Any]:
 
 
 def build_memo_payload() -> dict[str, Any]:
-    """Return source-gated memo claims and finalization status."""
+    """Return source-gated memo claims and finalization status.
+
+    Claims come from a live Claude API call when ANTHROPIC_API_KEY is set and
+    the call succeeds, otherwise from a deterministic fallback set. Either
+    way, every claim passes through the same render_claim() policy gate
+    before it can appear un-flagged in the memo.
+    """
     fields = flatten_extraction_table(EXTRACTION_TABLE)
     covenant_payload = build_covenant_payload()
-    rendered_claims = [render_claim(claim, fields) for claim in MEMO_CLAIMS]
-    claim_payloads = [_serialize_memo_claim(claim, rendered, fields) for claim, rendered in zip(MEMO_CLAIMS, rendered_claims, strict=True)]
+    drafted = draft_memo_claims(fields, covenant_payload)
+    if drafted is not None:
+        memo_claims, claim_sections = drafted
+        model_label = LIVE_MEMO_MODEL_LABEL
+    else:
+        memo_claims, claim_sections = FALLBACK_MEMO_CLAIMS, FALLBACK_MEMO_SECTIONS
+        model_label = FALLBACK_MEMO_MODEL_LABEL
+
+    rendered_claims = [render_claim(claim, fields) for claim in memo_claims]
+    claim_payloads = [_serialize_memo_claim(claim, rendered, fields) for claim, rendered in zip(memo_claims, rendered_claims, strict=True)]
     has_breach = bool(covenant_payload["breach_months"])
     return {
-        "model_label": MEMO_MODEL_LABEL,
+        "model_label": model_label,
         "status": "human_review_required" if has_breach else "draft",
         "final_allowed": final_memo_allowed(has_breach=has_breach, human_review_complete=False),
         "sections": [
             {
                 "section_name": section_name,
-                "text": " ".join(claim_payloads[index]["rendered_text"] for index in indexes),
+                "text": " ".join(
+                    claim_payloads[index]["rendered_text"]
+                    for index, section in enumerate(claim_sections)
+                    if section == section_name
+                ),
             }
-            for section_name, indexes in MEMO_SECTION_CLAIM_INDEXES.items()
+            for section_name in MEMO_SECTIONS
         ],
         "claims": claim_payloads,
     }
@@ -117,7 +143,7 @@ def build_evals_payload() -> dict[str, Any]:
             "extraction_accuracy": extraction_accuracy(list(fields.values()), expected),
             "covenant_breach_precision": precision_recall["precision"],
             "covenant_breach_recall": precision_recall["recall"],
-            "memo_hallucination_rate": memo_hallucination_rate(MEMO_CLAIMS, fields),
+            "memo_hallucination_rate": memo_hallucination_rate(FALLBACK_MEMO_CLAIMS, fields),
         },
         "breach_counts": breach_counts,
         "field_accuracy": _field_accuracy_rows(covenant_results),

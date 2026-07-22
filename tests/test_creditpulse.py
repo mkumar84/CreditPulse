@@ -1,7 +1,15 @@
+import pytest
+
 from creditpulse.covenants import breached_months, load_financials, monitor_covenants
 from creditpulse.evals import covenant_precision_recall, extraction_accuracy, load_prompt_model_regression, memo_hallucination_rate
 from creditpulse.extraction import extract_from_sources, flatten_extraction_table
 from creditpulse.policy import ExtractedField, MemoClaim, final_memo_allowed, render_claim
+
+
+@pytest.fixture(autouse=True)
+def _no_live_anthropic_key(monkeypatch):
+    """Keep tests hermetic: exercise the deterministic fallback, never the network."""
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
 
 
 def test_covenant_monitor_flags_month_19_breach_and_ambiguous_edge_case():
@@ -74,13 +82,13 @@ def test_extraction_agent_parses_sources_with_citations():
 
 
 def test_api_contract_payload_exposes_frontend_sections():
-    from creditpulse.api import build_contract_payload
+    from creditpulse.api import FALLBACK_MEMO_MODEL_LABEL, build_contract_payload
 
     payload = build_contract_payload()
     assert set(payload) == {"extraction", "covenants", "memo", "evals"}
     assert payload["extraction"]["borrower"]["value"] == "Meridian SaaS Co."
     assert payload["covenants"]["breach_months"] == ["2026-07"]
-    assert payload["memo"]["model_label"] == "Claude API (memo drafter)"
+    assert payload["memo"]["model_label"] == FALLBACK_MEMO_MODEL_LABEL
     assert payload["memo"]["status"] == "human_review_required"
     assert payload["evals"]["summary_cards"]["covenant_breach_precision"] == 1.0
 
@@ -185,3 +193,37 @@ def test_missing_ground_truth_is_empty_after_field_truth_closure():
     from creditpulse.api import build_evals_payload
 
     assert build_evals_payload()["missing_ground_truth"] == []
+
+
+def test_memo_payload_falls_back_without_an_anthropic_api_key():
+    from creditpulse.api import FALLBACK_MEMO_MODEL_LABEL, build_memo_payload
+    from creditpulse.memo_drafter import draft_memo_claims
+
+    fields = flatten_extraction_table("data/synthetic/extraction_table.json")
+    assert draft_memo_claims(fields, {"breach_months": []}) is None
+
+    payload = build_memo_payload()
+    assert payload["model_label"] == FALLBACK_MEMO_MODEL_LABEL
+    assert len(payload["claims"]) == 8
+
+
+def test_live_drafted_claims_are_still_gated_by_policy(monkeypatch):
+    """Even when the Claude API is live, a hallucinated field must not slip through."""
+    import creditpulse.api as api
+
+    fake_claims = [
+        MemoClaim("Meridian SaaS Co. is the borrower.", ("borrower",)),
+        MemoClaim("Pipeline conversion improved materially.", ("pipeline_conversion",)),
+    ]
+    fake_sections = ["Facility Summary", "Recommendation"]
+    monkeypatch.setattr(api, "draft_memo_claims", lambda fields, covenant_payload: (fake_claims, fake_sections))
+
+    payload = api.build_memo_payload()
+
+    assert payload["model_label"] == api.LIVE_MEMO_MODEL_LABEL
+    assert len(payload["claims"]) == 2
+    supported, unsupported = payload["claims"]
+    assert supported["needs_review"] is False
+    assert unsupported["needs_review"] is True
+    assert unsupported["rendered_text"].startswith("[NEEDS REVIEW]")
+    assert payload["sections"][0] == {"section_name": "Facility Summary", "text": "Meridian SaaS Co. is the borrower."}
