@@ -1,0 +1,173 @@
+{
+  "_provenance": "arr_millions/mrr_millions/churn_pct/cash_balance_millions are transcribed directly from data/synthetic/monthly_financials.csv as originally authored (24 months), independent of creditpulse.covenants/creditpulse.api's read path. burn_multiple is independently computed from the same source data using the formula in loan_agreement.md \u00a74.3 (quarterly gross burn / annualized quarterly net new ARR), written fresh rather than by importing creditpulse.covenants.monitor_covenants, specifically so this file can catch a real discrepancy in that function rather than restate its output. null = covenant deemed breached because annualized net new ARR was <= 0 (no finite ratio).",
+  "months": {
+    "2025-01": {
+      "arr_millions": 18.0,
+      "mrr_millions": 1.5,
+      "churn_pct": 1.8,
+      "cash_balance_millions": 22.0
+    },
+    "2025-02": {
+      "arr_millions": 18.7,
+      "mrr_millions": 1.56,
+      "churn_pct": 1.7,
+      "cash_balance_millions": 21.2
+    },
+    "2025-03": {
+      "arr_millions": 19.4,
+      "mrr_millions": 1.62,
+      "churn_pct": 1.8,
+      "cash_balance_millions": 20.5
+    },
+    "2025-04": {
+      "arr_millions": 20.2,
+      "mrr_millions": 1.68,
+      "churn_pct": 1.9,
+      "cash_balance_millions": 19.9
+    },
+    "2025-05": {
+      "arr_millions": 21.0,
+      "mrr_millions": 1.75,
+      "churn_pct": 1.8,
+      "cash_balance_millions": 19.1
+    },
+    "2025-06": {
+      "arr_millions": 21.9,
+      "mrr_millions": 1.83,
+      "churn_pct": 1.7,
+      "cash_balance_millions": 18.5
+    },
+    "2025-07": {
+      "arr_millions": 22.9,
+      "mrr_millions": 1.91,
+      "churn_pct": 1.8,
+      "cash_balance_millions": 17.8
+    },
+    "2025-08": {
+      "arr_millions": 23.8,
+      "mrr_millions": 1.98,
+      "churn_pct": 1.9,
+      "cash_balance_millions": 17.0
+    },
+    "2025-09": {
+      "arr_millions": 24.9,
+      "mrr_millions": 2.08,
+      "churn_pct": 1.8,
+      "cash_balance_millions": 16.4
+    },
+    "2025-10": {
+      "arr_millions": 25.9,
+      "mrr_millions": 2.16,
+      "churn_pct": 1.7,
+      "cash_balance_millions": 15.9
+    },
+    "2025-11": {
+      "arr_millions": 27.0,
+      "mrr_millions": 2.25,
+      "churn_pct": 1.8,
+      "cash_balance_millions": 15.3
+    },
+    "2025-12": {
+      "arr_millions": 28.2,
+      "mrr_millions": 2.35,
+      "churn_pct": 1.8,
+      "cash_balance_millions": 14.7
+    },
+    "2026-01": {
+      "arr_millions": 29.1,
+      "mrr_millions": 2.43,
+      "churn_pct": 1.9,
+      "cash_balance_millions": 14.0
+    },
+    "2026-02": {
+      "arr_millions": 30.0,
+      "mrr_millions": 2.5,
+      "churn_pct": 2.0,
+      "cash_balance_millions": 13.2
+    },
+    "2026-03": {
+      "arr_millions": 30.9,
+      "mrr_millions": 2.58,
+      "churn_pct": 2.1,
+      "cash_balance_millions": 12.4
+    },
+    "2026-04": {
+      "arr_millions": 30.4,
+      "mrr_millions": 2.53,
+      "churn_pct": 2.4,
+      "cash_balance_millions": 11.6
+    },
+    "2026-05": {
+      "arr_millions": 31.0,
+      "mrr_millions": 2.58,
+      "churn_pct": 2.5,
+      "cash_balance_millions": 10.7
+    },
+    "2026-06": {
+      "arr_millions": 31.4,
+      "mrr_millions": 2.62,
+      "churn_pct": 2.8,
+      "cash_balance_millions": 9.6
+    },
+    "2026-07": {
+      "arr_millions": 31.6,
+      "mrr_millions": 2.63,
+      "churn_pct": 3.2,
+      "cash_balance_millions": 7.4
+    },
+    "2026-08": {
+      "arr_millions": 33.0,
+      "mrr_millions": 2.75,
+      "churn_pct": 3.0,
+      "cash_balance_millions": 8.3
+    },
+    "2026-09": {
+      "arr_millions": 33.0,
+      "mrr_millions": 2.75,
+      "churn_pct": 2.7,
+      "cash_balance_millions": 8.1
+    },
+    "2026-10": {
+      "arr_millions": 34.0,
+      "mrr_millions": 2.83,
+      "churn_pct": 2.5,
+      "cash_balance_millions": 8.6
+    },
+    "2026-11": {
+      "arr_millions": 35.2,
+      "mrr_millions": 2.93,
+      "churn_pct": 2.3,
+      "cash_balance_millions": 9.4
+    },
+    "2026-12": {
+      "arr_millions": 36.5,
+      "mrr_millions": 3.04,
+      "churn_pct": 2.1,
+      "cash_balance_millions": 10.2
+    }
+  },
+  "burn_multiple": {
+    "2025-03": 0.653571,
+    "2025-04": 0.618333,
+    "2025-05": 0.5875,
+    "2025-06": 0.558824,
+    "2025-07": 0.506579,
+    "2025-08": 0.513158,
+    "2025-09": 0.495,
+    "2025-10": 0.478571,
+    "2025-11": 0.485714,
+    "2025-12": 0.45,
+    "2026-01": 0.50119,
+    "2026-02": 0.595833,
+    "2026-03": 0.609722,
+    "2026-04": 2.825,
+    "2026-05": 11.7,
+    "2026-06": 1.22,
+    "2026-07": 2.195833,
+    "2026-08": 0.857812,
+    "2026-09": 0.980357,
+    "2026-10": 1.29,
+    "2026-11": 0.553409,
+    "2026-12": 0.467
+  }
+}

@@ -3,6 +3,10 @@
     "value": "Meridian SaaS Co.",
     "citation": {"document": "loan_agreement.md", "section": "title"}
   },
+  "facility_size_millions": {
+    "value": 15.0,
+    "citation": {"document": "loan_agreement.md", "section": "1.1"}
+  },
   "covenants": {
     "minimum_liquidity_cash_millions": {
       "value": 8.0,

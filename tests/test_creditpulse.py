@@ -178,6 +178,75 @@ def test_evals_payload_includes_breach_counts_and_field_accuracy():
     assert payload["missing_ground_truth"] == []
 
 
+def test_facility_size_cites_the_actual_committed_facility_clause():
+    from creditpulse.api import build_evals_payload
+
+    row = next(r for r in build_evals_payload()["field_accuracy"] if r["field_name"] == "Facility Size")
+    assert row["citation"] == "loan_agreement.md §1.1"
+    assert row["accuracy"] == 1.0
+
+
+def test_monthly_field_accuracy_is_not_tautological_arr_can_actually_fail():
+    """Prove the ARR check compares real values, not a hardcoded 1.0: corrupt one
+    month's extracted value and confirm the accuracy score actually drops."""
+    from creditpulse.api import _scored_monthly_field
+    from creditpulse.covenants import MonthlyFinancial
+
+    financials = [
+        MonthlyFinancial("2025-01", 18.0, 1.50, 1.8, 1.20, 22.0, 142, 116, "baseline"),
+        MonthlyFinancial("2025-02", 18.7, 1.56, 1.7, 1.22, 21.2, 145, 116, "baseline"),
+    ]
+    monthly_truth = {
+        "months": {
+            "2025-01": {"arr_millions": 18.0},
+            "2025-02": {"arr_millions": 18.7},
+        }
+    }
+    correct = _scored_monthly_field("ARR", "arr_millions", financials, monthly_truth)
+    assert correct["accuracy"] == 1.0
+
+    corrupted_financials = [financials[0], MonthlyFinancial("2025-02", 99.9, 1.56, 1.7, 1.22, 21.2, 145, 116, "baseline")]
+    wrong = _scored_monthly_field("ARR", "arr_millions", corrupted_financials, monthly_truth)
+    assert wrong["accuracy"] == 0.5
+
+
+def test_burn_multiple_accuracy_is_not_tautological_can_actually_fail():
+    """Prove the burn-multiple check compares real values: a wrong computed
+    value must score below 1.0 against the independently re-derived ground truth."""
+    from creditpulse.api import _scored_burn_multiple
+
+    truth = {"2026-07": 2.195833}
+    correct = _scored_burn_multiple({"2026-07": 2.195833}, truth)
+    assert correct["accuracy"] == 1.0
+
+    wrong = _scored_burn_multiple({"2026-07": 0.5}, truth)
+    assert wrong["accuracy"] == 0.0
+
+
+def test_monthly_metrics_ground_truth_matches_live_data_with_zero_discrepancies():
+    """Regression guard: the independently-authored ground truth file should
+    agree with the live CSV/covenant computation for every one of the 24
+    months (and 22 burn-multiple months) — this is what makes the 100% score
+    in build_evals_payload() a measured result rather than an assumption."""
+    import json
+
+    from creditpulse.api import build_evals_payload
+    from creditpulse.covenants import load_financials, monitor_covenants
+
+    monthly_truth = json.loads(open("data/ground_truth/monthly_metrics_answer_key.json").read())
+    financials = load_financials("data/synthetic/monthly_financials.csv")
+    assert len(monthly_truth["months"]) == len(financials) == 24
+    assert len(monthly_truth["burn_multiple"]) == 22
+
+    results = monitor_covenants(financials)
+    burn_actual = {r.month: r.computed_value for r in results if r.covenant == "net_burn_multiple_cap"}
+    assert set(burn_actual) == set(monthly_truth["burn_multiple"])
+
+    for row in build_evals_payload()["field_accuracy"]:
+        if row["field_name"] in {"ARR", "MRR", "Gross Churn %", "Cash Balance", "Burn Multiple"}:
+            assert row["accuracy"] == 1.0, row
+
+
 def test_all_extraction_citations_include_confidence_scores():
     from creditpulse.api import build_extraction_payload
 
