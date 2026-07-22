@@ -12,6 +12,8 @@
     "expected_judgment": "human_review_required",
     "source_covenant": "committed_mrr_interpretation",
     "citation": "loan_agreement.md §4.5",
-    "n": 1
+    "n": 1,
+    "rationale": "loan_agreement.md §4.5: the December 2026 pilot expansion is 'verbally approved but not countersigned, creating an ambiguous edge case requiring human review rather than automatic inclusion.' A verbal-only, uncountersigned revenue commitment is not contractually enforceable, so a credit analyst cannot treat it as committed MRR without sign-off — auto-including it would let an unexecuted side agreement affect a covenant breach determination. This judgment is derived directly from the contract text, independent of creditpulse.covenants.monitor_covenants' current implementation.",
+    "caveat": "monitor_covenants() currently hardcodes human_review=True for every 'ambiguous' month with no alternative code path (creditpulse/covenants.py, committed_mrr_interpretation branch). With n=1, this field_accuracy row can therefore only ever score 1.0 or crash — it verifies that an ambiguous month is detected and escalated at all, not that a substantive interpretive judgment was correctly reasoned. If additional ambiguous scenarios are added to the fixtures, extend this answer key with an independently-derived judgment for each before extending the code, so the check stays a real test rather than a restatement of the implementation."
   }
 }
