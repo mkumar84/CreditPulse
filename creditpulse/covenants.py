@@ -77,6 +77,11 @@ def monitor_covenants(financials: list[MonthlyFinancial]) -> list[CovenantResult
             results.append(CovenantResult(item.month, "net_burn_multiple_cap", burn_multiple, 1.5, (burn_multiple > 1.5) and not restatement_review, "loan_agreement.md §4.3", "Restatement period requires analyst validation before covenant action." if restatement_review else None, restatement_review))
 
         if "ambiguous" in item.notes:
+            # human_review is always True here, not computed: §4.5 states a verbal-only,
+            # uncountersigned commitment must never be auto-included, so any "ambiguous"
+            # month is unconditionally escalated. See data/ground_truth/field_accuracy_answer_key.json
+            # (mac_style_interpretive_field) for the independent rationale and the caveat
+            # that this makes the field's accuracy check a detection test, not a substantive one.
             results.append(CovenantResult(item.month, "committed_mrr_interpretation", item.mrr_millions, 0.0, False, "loan_agreement.md §4.5", "Verbal approval is not countersigned; require human review before including committed MRR.", True))
     return results
 
