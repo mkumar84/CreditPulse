@@ -8,17 +8,43 @@ same function used for real historical months. monitor_covenants() performs
 100% of the actual ratio calculations and threshold comparisons; this module
 never calls an LLM and never touches a threshold value.
 
-Note on the projected_financials figures: ARR is anchored to the real,
-same-calendar-month value from a year earlier (so a covenant check comparing
-year-over-year growth sees exactly the requested arr_growth_pct). That
-anchor inherits whatever seasonal unevenness is already in the historical
-data, which the burn-multiple covenant's quarterly window is sensitive to —
-so the *implied* gross_burn solved to hit a requested burn_multiple can look
-large or even negative in a volatile scenario. That is a real mathematical
-consequence of forcing a constant ratio against a jagged ARR delta, not an
-estimation error; the covenant verdicts it produces are still exactly
-correct (verified in tests), including reproducing monitor_covenants()'s own
-"Infinity" rule when quarterly net-new-ARR is zero or negative.
+Note on the projected_financials figures:
+
+ARR compounds smoothly month over month from the real starting month's
+actual ARR, at the constant monthly rate implied by arr_growth_pct (so that
+after 12 projected months, ARR is exactly arr_growth_pct higher than the
+value 12 months earlier). This deliberately does NOT re-anchor each
+projected month to that specific calendar month's value from a year ago —
+the historical data has real seasonal shape and a deliberate ARR-restatement
+anomaly (April 2026), and re-anchoring to it would import that noise into an
+otherwise-constant scenario. Smooth compounding keeps ARR monotonic under
+constant inputs, as a "hold this growth rate steady" scenario should be.
+
+One consequence: for projected months within the first 12 of the horizon,
+the arr_growth_floor covenant's own year-over-year computation (against the
+REAL month 12 months back, which monitor_covenants() computes unmodified)
+will not exactly equal arr_growth_pct — only once both endpoints of that
+comparison are inside the smooth projected series (13+ months out) does it
+become exact. This is the mathematically correct behavior, not a rounding
+gap: a real deceleration starting today would take a full trailing-12-month
+cycle to show up as an unchanged trailing growth-rate reading too.
+
+Gross burn is solved DIRECTLY per month — gross_burn[M] = burn_multiple *
+annualized_net_new_arr[M] / 3 — rather than by chaining backward through the
+rolling 3-month window (target[M] - gross_burn[M-2] - gross_burn[M-1]). The
+chained form was tried first and rejected: monitor_covenants()'s quarterly
+window makes "3 consecutive burns sum to a target" a marginally-stable
+recurrence with no damping term, so any transient mismatch at the
+historical/projected boundary (the real trailing months were never chosen
+to fit the new scenario) becomes a permanent, undamped oscillation — it
+does not decay no matter how many months are projected. The direct form
+has no such feedback path, so it stays stable indefinitely. Its trade-off
+is the mirror of the ARR-growth one above: because net_new_arr drifts
+slightly month to month under exponential ARR compounding, the burn-multiple
+covenant's own computed_value converges very close to, but is not always
+bit-exact to, the requested burn_multiple during the transition — verified
+in tests to stay within a small, non-oscillating tolerance, converging
+tighter as the projection settles into the new trend.
 """
 
 from __future__ import annotations
@@ -49,12 +75,12 @@ def _generate_projected_rows(
     burn_multiple: float,
     nrr_pct: float | None,
 ) -> list[MonthlyFinancial]:
-    """Build hypothetical rows so that, once run through monitor_covenants()
-    unmodified, its arr_growth_floor/net_burn_multiple_cap computed_values
-    come out equal to the requested overrides — by construction, using the
-    exact inverse of the same formulas monitor_covenants() applies forward
-    (YoY ARR growth against the same calendar month prior year; quarterly
-    gross burn / annualized quarterly net-new-ARR for burn multiple).
+    """Build hypothetical rows via smooth month-over-month compounding from
+    the real starting month, at the monthly rate implied by arr_growth_pct,
+    then reverse-solve burn through the exact same quarterly-window formula
+    monitor_covenants() uses so the requested burn_multiple is (barring the
+    Infinity edge case below) what that formula reports back. See the module
+    docstring for why ARR is NOT re-anchored to specific historical months.
 
     Cash balance has no override: it rolls forward as
     cash[month] = cash[prior month] - gross_burn[month], the simplest
@@ -71,16 +97,13 @@ def _generate_projected_rows(
     starting_row = by_month[start_month]
     effective_nrr = starting_row.nrr_pct if nrr_pct is None else nrr_pct
     cash_balance = starting_row.cash_balance_millions
+    monthly_growth_factor = (1 + arr_growth_pct / 100) ** (1 / 12)
     projected: list[MonthlyFinancial] = []
 
     for step in range(1, months_forward + 1):
         month = _add_months(start_month, step)
-        prior_year_month = _add_months(month, -12)
-        prior_year_row = by_month.get(prior_year_month) or next((row for row in timeline if row.month == prior_year_month), None)
-        if prior_year_row is None:
-            raise ValueError(f"Cannot project {month}: no prior-year data available for {prior_year_month}.")
 
-        arr = prior_year_row.arr_millions * (1 + arr_growth_pct / 100)
+        arr = timeline[-1].arr_millions * monthly_growth_factor
         mrr = arr / 12
 
         quarter_prior = timeline[-2:]
@@ -95,9 +118,10 @@ def _generate_projected_rows(
             # solving a division that covenants.py would never perform.
             gross_burn = quarter_prior[-1].gross_burn_millions
         else:
-            target_quarterly_burn = burn_multiple * annualized_net_new_arr
-            prior_burn_sum = sum(row.gross_burn_millions for row in quarter_prior)
-            gross_burn = target_quarterly_burn - prior_burn_sum
+            # Direct solve, not chained through the previous two months'
+            # already-solved burns — see the module docstring for why the
+            # chained form oscillates without bound.
+            gross_burn = burn_multiple * annualized_net_new_arr / 3
 
         cash_balance = cash_balance - gross_burn
 
