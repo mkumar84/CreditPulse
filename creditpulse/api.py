@@ -24,6 +24,7 @@ from creditpulse.evals import covenant_precision_recall, extraction_accuracy, lo
 from creditpulse.extraction import extract_from_sources, flatten_extraction_table
 from creditpulse.memo_drafter import MEMO_SECTIONS, draft_memo_claims
 from creditpulse.policy import MemoClaim, final_memo_allowed, render_claim
+from creditpulse.simulate import simulate_covenants
 
 ROOT = Path(__file__).resolve().parent.parent
 FINANCIALS = ROOT / "data" / "synthetic" / "monthly_financials.csv"
@@ -176,6 +177,52 @@ def build_ask_payload(question: str) -> dict[str, Any]:
     return answer_question(question, build_contract_payload())
 
 
+def build_simulate_payload(params: dict[str, str]) -> dict[str, Any]:
+    """Project covenant status forward via creditpulse.simulate.
+
+    All covenant math is performed by covenants.monitor_covenants() — the
+    exact same function /covenants uses for real historical months. This
+    builder only parses query params and serializes the result; no LLM is
+    used anywhere in this path.
+    """
+    financials = load_financials(FINANCIALS)
+    try:
+        months_forward = int(params["months_forward"])
+        arr_growth_pct = float(params["arr_growth_pct"])
+        burn_multiple = float(params["burn_multiple"])
+    except (KeyError, ValueError):
+        return {
+            "error": "invalid_request",
+            "message": "months_forward (positive int), arr_growth_pct (float), and burn_multiple (float) are required query parameters.",
+        }
+    if months_forward <= 0:
+        return {"error": "invalid_request", "message": "months_forward must be a positive integer."}
+
+    start_month = params.get("start_month") or financials[-1].month
+    nrr_raw = params.get("nrr_pct")
+    try:
+        nrr_pct = float(nrr_raw) if nrr_raw else None
+    except ValueError:
+        return {"error": "invalid_request", "message": "nrr_pct, if provided, must be a number."}
+
+    try:
+        simulation = simulate_covenants(financials, start_month, months_forward, arr_growth_pct, burn_multiple, nrr_pct)
+    except ValueError as exc:
+        return {"error": "invalid_request", "message": str(exc)}
+
+    return {
+        "is_simulation": True,
+        "start_month": start_month,
+        "months_forward": months_forward,
+        "overrides": {"arr_growth_pct": arr_growth_pct, "burn_multiple": burn_multiple, "nrr_pct": nrr_pct},
+        "projected_months": [row.month for row in simulation.projected_rows],
+        "breach_months": sorted({result.month for result in simulation.results if result.breached}),
+        "human_review_months": sorted({result.month for result in simulation.results if result.human_review}),
+        "projected_financials": [_serialize_monthly_series(row) | {"gross_burn_millions": row.gross_burn_millions, "cash_balance_millions": row.cash_balance_millions, "nrr_pct": row.nrr_pct} for row in simulation.projected_rows],
+        "results": [_serialize_covenant_result(result) for result in simulation.results],
+    }
+
+
 class CreditPulseHandler(BaseHTTPRequestHandler):
     """Minimal JSON API handler for Railway deployment."""
 
@@ -194,6 +241,11 @@ class CreditPulseHandler(BaseHTTPRequestHandler):
         if route == "/ask":
             question = parse_qs(parsed_url.query).get("q", [""])[0]
             self._write_json(build_ask_payload(question))
+            return
+        if route == "/simulate":
+            params = {key: values[0] for key, values in parse_qs(parsed_url.query).items()}
+            payload = build_simulate_payload(params)
+            self._write_json(payload, status=400 if "error" in payload else 200)
             return
         if route not in self.routes:
             self._write_json({"error": "not_found", "route": route}, status=404)

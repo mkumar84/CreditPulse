@@ -1,0 +1,260 @@
+{
+  "_description": "Example request/response pairs for GET /simulate. Generated directly from creditpulse.api.build_simulate_payload() to guarantee this file matches the live endpoint exactly, the same way sample_ask_response.json and the rest of this directory's contract mock were built against the real payload builders.",
+  "examples": [
+    {
+      "request": "GET /simulate?months_forward=3&arr_growth_pct=5&burn_multiple=0.5",
+      "response": {
+        "is_simulation": true,
+        "start_month": "2026-12",
+        "months_forward": 3,
+        "overrides": {
+          "arr_growth_pct": 5.0,
+          "burn_multiple": 0.5,
+          "nrr_pct": null
+        },
+        "projected_months": [
+          "2027-01",
+          "2027-02",
+          "2027-03"
+        ],
+        "breach_months": [
+          "2027-01",
+          "2027-02",
+          "2027-03"
+        ],
+        "human_review_months": [],
+        "projected_financials": [
+          {
+            "month": "2027-01",
+            "arr_millions": 30.555,
+            "mrr_millions": 2.54625,
+            "churn_pct": 2.1,
+            "gross_burn_millions": 1.5,
+            "cash_balance_millions": 8.7,
+            "nrr_pct": 110.0
+          },
+          {
+            "month": "2027-02",
+            "arr_millions": 31.5,
+            "mrr_millions": 2.625,
+            "churn_pct": 2.1,
+            "gross_burn_millions": 1.5,
+            "cash_balance_millions": 7.2,
+            "nrr_pct": 110.0
+          },
+          {
+            "month": "2027-03",
+            "arr_millions": 32.445,
+            "mrr_millions": 2.70375,
+            "churn_pct": 2.1,
+            "gross_burn_millions": 0.78,
+            "cash_balance_millions": 6.42,
+            "nrr_pct": 110.0
+          }
+        ],
+        "results": [
+          {
+            "month": "2027-01",
+            "covenant": "minimum_liquidity_cash_runway",
+            "computed_value": 5.8,
+            "threshold": 4.0,
+            "breached": false,
+            "citation": "loan_agreement.md §4.1",
+            "llm_annotation": null,
+            "human_review": false
+          },
+          {
+            "month": "2027-01",
+            "covenant": "arr_growth_floor",
+            "computed_value": 4.999999999999994,
+            "threshold": 20.0,
+            "breached": true,
+            "citation": "loan_agreement.md §4.2",
+            "llm_annotation": null,
+            "human_review": false
+          },
+          {
+            "month": "2027-01",
+            "covenant": "nrr_floor",
+            "computed_value": 110.0,
+            "threshold": 100.0,
+            "breached": false,
+            "citation": "loan_agreement.md §4.4",
+            "llm_annotation": null,
+            "human_review": false
+          },
+          {
+            "month": "2027-01",
+            "covenant": "net_burn_multiple_cap",
+            "computed_value": "Infinity",
+            "threshold": 1.5,
+            "breached": true,
+            "citation": "loan_agreement.md §4.3",
+            "llm_annotation": null,
+            "human_review": false
+          },
+          {
+            "month": "2027-02",
+            "covenant": "minimum_liquidity_cash_runway",
+            "computed_value": 4.8,
+            "threshold": 4.0,
+            "breached": true,
+            "citation": "loan_agreement.md §4.1",
+            "llm_annotation": null,
+            "human_review": false
+          },
+          {
+            "month": "2027-02",
+            "covenant": "arr_growth_floor",
+            "computed_value": 5.0,
+            "threshold": 20.0,
+            "breached": true,
+            "citation": "loan_agreement.md §4.2",
+            "llm_annotation": null,
+            "human_review": false
+          },
+          {
+            "month": "2027-02",
+            "covenant": "nrr_floor",
+            "computed_value": 110.0,
+            "threshold": 100.0,
+            "breached": false,
+            "citation": "loan_agreement.md §4.4",
+            "llm_annotation": null,
+            "human_review": false
+          },
+          {
+            "month": "2027-02",
+            "covenant": "net_burn_multiple_cap",
+            "computed_value": "Infinity",
+            "threshold": 1.5,
+            "breached": true,
+            "citation": "loan_agreement.md §4.3",
+            "llm_annotation": null,
+            "human_review": false
+          },
+          {
+            "month": "2027-03",
+            "covenant": "minimum_liquidity_cash_runway",
+            "computed_value": 8.23076923076923,
+            "threshold": 4.0,
+            "breached": true,
+            "citation": "loan_agreement.md §4.1",
+            "llm_annotation": null,
+            "human_review": false
+          },
+          {
+            "month": "2027-03",
+            "covenant": "arr_growth_floor",
+            "computed_value": 5.000000000000006,
+            "threshold": 20.0,
+            "breached": true,
+            "citation": "loan_agreement.md §4.2",
+            "llm_annotation": null,
+            "human_review": false
+          },
+          {
+            "month": "2027-03",
+            "covenant": "nrr_floor",
+            "computed_value": 110.0,
+            "threshold": 100.0,
+            "breached": false,
+            "citation": "loan_agreement.md §4.4",
+            "llm_annotation": null,
+            "human_review": false
+          },
+          {
+            "month": "2027-03",
+            "covenant": "net_burn_multiple_cap",
+            "computed_value": 0.4999999999999999,
+            "threshold": 1.5,
+            "breached": false,
+            "citation": "loan_agreement.md §4.3",
+            "llm_annotation": null,
+            "human_review": false
+          }
+        ]
+      }
+    },
+    {
+      "request": "GET /simulate?months_forward=1&arr_growth_pct=5&burn_multiple=1.6",
+      "response": {
+        "is_simulation": true,
+        "start_month": "2026-12",
+        "months_forward": 1,
+        "overrides": {
+          "arr_growth_pct": 5.0,
+          "burn_multiple": 1.6,
+          "nrr_pct": null
+        },
+        "projected_months": [
+          "2027-01"
+        ],
+        "breach_months": [
+          "2027-01"
+        ],
+        "human_review_months": [],
+        "projected_financials": [
+          {
+            "month": "2027-01",
+            "arr_millions": 30.555,
+            "mrr_millions": 2.54625,
+            "churn_pct": 2.1,
+            "gross_burn_millions": 1.5,
+            "cash_balance_millions": 8.7,
+            "nrr_pct": 110.0
+          }
+        ],
+        "results": [
+          {
+            "month": "2027-01",
+            "covenant": "minimum_liquidity_cash_runway",
+            "computed_value": 5.8,
+            "threshold": 4.0,
+            "breached": false,
+            "citation": "loan_agreement.md §4.1",
+            "llm_annotation": null,
+            "human_review": false
+          },
+          {
+            "month": "2027-01",
+            "covenant": "arr_growth_floor",
+            "computed_value": 4.999999999999994,
+            "threshold": 20.0,
+            "breached": true,
+            "citation": "loan_agreement.md §4.2",
+            "llm_annotation": null,
+            "human_review": false
+          },
+          {
+            "month": "2027-01",
+            "covenant": "nrr_floor",
+            "computed_value": 110.0,
+            "threshold": 100.0,
+            "breached": false,
+            "citation": "loan_agreement.md §4.4",
+            "llm_annotation": null,
+            "human_review": false
+          },
+          {
+            "month": "2027-01",
+            "covenant": "net_burn_multiple_cap",
+            "computed_value": "Infinity",
+            "threshold": 1.5,
+            "breached": true,
+            "citation": "loan_agreement.md §4.3",
+            "llm_annotation": null,
+            "human_review": false
+          }
+        ]
+      }
+    },
+    {
+      "request": "GET /simulate?arr_growth_pct=5&burn_multiple=1.5",
+      "response": {
+        "error": "invalid_request",
+        "message": "months_forward (positive int), arr_growth_pct (float), and burn_multiple (float) are required query parameters."
+      }
+    }
+  ]
+}
