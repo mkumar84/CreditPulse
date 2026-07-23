@@ -384,6 +384,49 @@ def test_ask_facility_size_cites_the_actual_facility_clause_not_the_liquidity_co
     assert citation["section"] == "1.1"
 
 
+def test_simulate_liquidity_covenant_breach_direction_is_not_inverted():
+    """minimum_liquidity_cash_runway (loan_agreement.md §4.1) is a two-part
+    covenant: cash_balance_millions must be >= $8.0M AND runway must be
+    >= 4 months, either failing breaches it (see covenants.py's
+    `item.cash_balance_millions < 8.0 or runway < 4.0`). computed_value /
+    threshold in the API response only expose the runway half of that OR.
+
+    With burn_multiple=1.5, gross_burn collapses from month 1 (~2.9) to
+    ~0.6 from month 2 onward (simulate.py's direct per-month burn solve),
+    which inflates runway (cash / burn) even though cash itself stays
+    below the $8M floor — so 2027-02 correctly reads breached: True (cash
+    is genuinely non-compliant) despite computed_value (11.25) sitting
+    well above the 4.0 runway threshold. This is the OTHER sub-condition
+    firing, not inverted logic — proven here against the exact scenario
+    from the bug report, not a synthetic case designed to pass.
+
+    A genuinely compliant scenario (small, slowly-draining burn that keeps
+    cash above $8M throughout) must still read breached: False despite an
+    even larger runway value, proving the comparison itself is not
+    backwards."""
+    from creditpulse.api import build_simulate_payload
+
+    breached_run = build_simulate_payload({"months_forward": "6", "arr_growth_pct": "5", "burn_multiple": "1.5"})
+    liquidity_rows = {r["month"]: r for r in breached_run["results"] if r["covenant"] == "minimum_liquidity_cash_runway"}
+    cash_by_month = {row["month"]: row["cash_balance_millions"] for row in breached_run["projected_financials"]}
+
+    row = liquidity_rows["2027-02"]
+    assert row["computed_value"] == pytest.approx(11.251946614)
+    assert row["threshold"] == 4.0
+    assert row["computed_value"] > row["threshold"]  # runway alone looks compliant
+    assert cash_by_month["2027-02"] < 8.0  # but cash is genuinely below the $8M floor
+    assert row["breached"] is True  # correctly driven by the cash sub-condition, not runway
+
+    compliant_run = build_simulate_payload({"months_forward": "6", "arr_growth_pct": "5", "burn_multiple": "0.3"})
+    compliant_rows = {r["month"]: r for r in compliant_run["results"] if r["covenant"] == "minimum_liquidity_cash_runway"}
+    compliant_cash_by_month = {row["month"]: row["cash_balance_millions"] for row in compliant_run["projected_financials"]}
+
+    for month, comp_row in compliant_rows.items():
+        assert comp_row["computed_value"] > comp_row["threshold"]  # runway comfortably above threshold
+        assert compliant_cash_by_month[month] >= 8.0  # AND cash genuinely compliant
+        assert comp_row["breached"] is False  # correctly reads compliant, not inverted
+
+
 def test_simulate_arr_growth_deceleration_correctly_projects_breach_at_right_month():
     """Known-bad scenario: ARR growth dropping to 5% (well under the 20% floor).
 
