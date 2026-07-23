@@ -65,9 +65,15 @@ def extract_from_sources(loan_agreement_path: str | Path, monthly_financials_pat
     financials_path = Path(monthly_financials_path)
     loan_lines = loan_path.read_text().splitlines()
     borrower = _extract_borrower(loan_path.name, loan_lines)
+    facility_size_millions = _extract_facility_size(loan_path.name, loan_lines)
     covenants = _extract_covenants(loan_path.name, loan_lines)
     latest_month = _extract_latest_month(financials_path)
-    return {"borrower": borrower, "covenants": covenants, "latest_month": latest_month}
+    return {
+        "borrower": borrower,
+        "facility_size_millions": facility_size_millions,
+        "covenants": covenants,
+        "latest_month": latest_month,
+    }
 
 
 def write_extraction_table(extraction: dict[str, Any], output_path: str | Path) -> None:
@@ -79,6 +85,14 @@ def _extract_borrower(document: str, loan_lines: list[str]) -> dict[str, Any]:
     title = loan_lines[0]
     borrower = title.removeprefix("# ").removesuffix(" Loan Agreement Excerpt")
     return {"value": borrower, "citation": {"document": document, "line": 1}}
+
+
+def _extract_facility_size(document: str, loan_lines: list[str]) -> dict[str, Any]:
+    section = _section_bodies(loan_lines)["1.1"]
+    return {
+        "value": _first_number_after(r"\$(\d+(?:\.\d+)?) million", section["body"]),
+        "citation": {"document": document, "section": "1.1", "line": section["line"]},
+    }
 
 
 def _extract_covenants(document: str, loan_lines: list[str]) -> dict[str, Any]:
