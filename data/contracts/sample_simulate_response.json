@@ -1,5 +1,5 @@
 {
-  "_description": "Example request/response pairs for GET /simulate. Generated directly from creditpulse.api.build_simulate_payload() to guarantee this file matches the live endpoint exactly, the same way sample_ask_response.json and the rest of this directory's contract mock were built against the real payload builders. The second example (negative arr_growth_pct) shows monitor_covenants()'s own \"Infinity\" rule for a covenant breach with no finite burn multiple. net_burn_multiple_cap rows carry a window_fully_projected flag and arr_growth_floor rows carry comparator_month / comparator_is_projected \u2014 both purely descriptive of which calendar months feed that covenant's own window/comparator, see CreditPulse_PRD.md \u00a76. net_burn_multiple_cap rows additionally carry numerically_settled, which is one evaluation stricter than window_fully_projected \u2014 see CreditPulse_PRD.md \u00a76 for why label purity and numeric settling can differ by exactly one month.",
+  "_description": "Example request/response pairs for GET /simulate. Generated directly from creditpulse.api.build_simulate_payload() to guarantee this file matches the live endpoint exactly, the same way sample_ask_response.json and the rest of this directory's contract mock were built against the real payload builders. The second example (negative arr_growth_pct) shows monitor_covenants()'s own \"Infinity\" rule for a covenant breach with no finite burn multiple. net_burn_multiple_cap rows carry a window_fully_projected flag and arr_growth_floor rows carry comparator_month / comparator_is_projected \u2014 both purely descriptive of which calendar months feed that covenant's own window/comparator, see CreditPulse_PRD.md \u00a76. net_burn_multiple_cap rows additionally carry numerically_settled, which is one evaluation stricter than window_fully_projected \u2014 see CreditPulse_PRD.md \u00a76 for why label purity and numeric settling can differ by exactly one month. arr_growth_floor rows now also carry numerically_settled, true whenever comparator_month is start_month or later (start_month itself is the clean compounding anchor, not stale history), even in the one case where comparator_is_projected still reads false because start_month is real.",
   "examples": [
     {
       "request": "GET /simulate?months_forward=3&arr_growth_pct=5&burn_multiple=0.5",
@@ -72,7 +72,8 @@
             "llm_annotation": null,
             "human_review": false,
             "comparator_month": "2026-01",
-            "comparator_is_projected": false
+            "comparator_is_projected": false,
+            "numerically_settled": false
           },
           {
             "month": "2027-01",
@@ -116,7 +117,8 @@
             "llm_annotation": null,
             "human_review": false,
             "comparator_month": "2026-02",
-            "comparator_is_projected": false
+            "comparator_is_projected": false,
+            "numerically_settled": false
           },
           {
             "month": "2027-02",
@@ -160,7 +162,8 @@
             "llm_annotation": null,
             "human_review": false,
             "comparator_month": "2026-03",
-            "comparator_is_projected": false
+            "comparator_is_projected": false,
+            "numerically_settled": false
           },
           {
             "month": "2027-03",
@@ -248,7 +251,8 @@
             "llm_annotation": null,
             "human_review": false,
             "comparator_month": "2026-01",
-            "comparator_is_projected": false
+            "comparator_is_projected": false,
+            "numerically_settled": false
           },
           {
             "month": "2027-01",
@@ -292,7 +296,8 @@
             "llm_annotation": null,
             "human_review": false,
             "comparator_month": "2026-02",
-            "comparator_is_projected": false
+            "comparator_is_projected": false,
+            "numerically_settled": false
           },
           {
             "month": "2027-02",

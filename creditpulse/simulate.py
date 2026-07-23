@@ -196,6 +196,17 @@ def describe_result_metadata(result: CovenantResult, projected_months: set[str])
     numerically_settled is true only once the first projected month has
     rolled out of the window entirely — one evaluation later than
     window_fully_projected alone would suggest.
+
+    numerically_settled (also on arr_growth_floor) closes the mirror-image
+    gap in comparator_is_projected using the same reasoning: ARR compounds
+    smoothly from start_month, so start_month's own real ARR is exactly the
+    t=0 anchor of the new growth rate, not stale history — a comparator
+    equal to start_month reads the new rate just as cleanly as a comparator
+    that's a later projected month does. comparator_is_projected is false
+    for both (start_month itself is real, not in projected_months), so it
+    under-reports settling by exactly one month at the boundary. Any
+    comparator strictly before start_month is genuine stale history and
+    stays unsettled.
     """
     if result.covenant == "net_burn_multiple_cap":
         window_months = (_add_months(result.month, -2), _add_months(result.month, -1), result.month)
@@ -205,5 +216,8 @@ def describe_result_metadata(result: CovenantResult, projected_months: set[str])
         return {"window_fully_projected": window_fully_projected, "numerically_settled": numerically_settled}
     if result.covenant == "arr_growth_floor":
         comparator_month = _add_months(result.month, -12)
-        return {"comparator_month": comparator_month, "comparator_is_projected": comparator_month in projected_months}
+        comparator_is_projected = comparator_month in projected_months
+        start_month = _add_months(min(projected_months), -1)
+        numerically_settled = comparator_is_projected or comparator_month == start_month
+        return {"comparator_month": comparator_month, "comparator_is_projected": comparator_is_projected, "numerically_settled": numerically_settled}
     return {}

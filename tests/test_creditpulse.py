@@ -581,6 +581,39 @@ def test_simulate_arr_growth_comparator_metadata_reflects_real_vs_projected_hist
     assert growth_by_month["2028-01"]["comparator_is_projected"] is True  # first fully-projected comparator
 
 
+def test_simulate_arr_growth_numerically_settled_true_at_month_12_despite_comparator_is_projected_false():
+    """Mirror-image gap to the burn-multiple case: month 12's comparator is
+    start_month itself (2026-12) — real, so comparator_is_projected reads
+    false — but ARR compounds smoothly FROM start_month, so start_month is
+    the clean t=0 anchor of the new growth rate, not stale history. Growth
+    at month 12 is already accurate to 5+ decimal places against the
+    requested 5% (diff ~2.7e-6), while month 11's comparator (2026-11) is
+    genuine pre-scenario history and is still off by >1.0. Only month 12
+    exhibits this label/value mismatch; month 13 onward has
+    comparator_is_projected true and numerically_settled true, agreeing."""
+    from creditpulse.api import build_simulate_payload
+
+    payload = build_simulate_payload({"months_forward": "13", "arr_growth_pct": "5", "burn_multiple": "1.5"})
+    rows = {r["month"]: r for r in payload["results"] if r["covenant"] == "arr_growth_floor"}
+
+    month_11, month_12, month_13 = rows["2027-11"], rows["2027-12"], rows["2028-01"]
+
+    assert month_11["numerically_settled"] is False
+    assert abs(month_11["computed_value"] - 5.0) > 1.0
+
+    assert month_12["comparator_is_projected"] is False  # unchanged: start_month is real, not in projected_months
+    assert month_12["numerically_settled"] is True
+    assert abs(month_12["computed_value"] - 5.0) < 0.01
+
+    assert month_13["comparator_is_projected"] is True
+    assert month_13["numerically_settled"] is True
+    assert abs(month_13["computed_value"] - 5.0) < 0.01
+
+    for month, row in rows.items():
+        if month != "2027-12":
+            assert row["numerically_settled"] == row["comparator_is_projected"], month  # only month 12 diverges
+
+
 def test_covenants_breach_boundary_is_not_misclassified_by_float_noise():
     """A value that lands a hair above an exact threshold purely from float
     division noise (not a real breach) must not be classified as breached.
