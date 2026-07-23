@@ -24,7 +24,7 @@ from creditpulse.evals import covenant_precision_recall, extraction_accuracy, lo
 from creditpulse.extraction import extract_from_sources, flatten_extraction_table
 from creditpulse.memo_drafter import MEMO_SECTIONS, draft_memo_claims
 from creditpulse.policy import MemoClaim, final_memo_allowed, render_claim
-from creditpulse.simulate import simulate_covenants
+from creditpulse.simulate import describe_result_metadata, simulate_covenants
 
 ROOT = Path(__file__).resolve().parent.parent
 FINANCIALS = ROOT / "data" / "synthetic" / "monthly_financials.csv"
@@ -210,6 +210,7 @@ def build_simulate_payload(params: dict[str, str]) -> dict[str, Any]:
     except ValueError as exc:
         return {"error": "invalid_request", "message": str(exc)}
 
+    projected_months = {row.month for row in simulation.projected_rows}
     return {
         "is_simulation": True,
         "start_month": start_month,
@@ -219,7 +220,7 @@ def build_simulate_payload(params: dict[str, str]) -> dict[str, Any]:
         "breach_months": sorted({result.month for result in simulation.results if result.breached}),
         "human_review_months": sorted({result.month for result in simulation.results if result.human_review}),
         "projected_financials": [_serialize_monthly_series(row) | {"gross_burn_millions": row.gross_burn_millions, "cash_balance_millions": row.cash_balance_millions, "nrr_pct": row.nrr_pct} for row in simulation.projected_rows],
-        "results": [_serialize_covenant_result(result) for result in simulation.results],
+        "results": [_serialize_covenant_result(result) | describe_result_metadata(result, projected_months) for result in simulation.results],
     }
 
 

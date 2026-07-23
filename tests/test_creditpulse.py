@@ -493,6 +493,60 @@ def test_simulate_defers_to_covenants_own_infinite_burn_multiple_rule():
     assert burn_result["threshold"] == 1.5
 
 
+def test_simulate_burn_multiple_window_fully_projected_flag_matches_window_composition():
+    """window_fully_projected is a literal, mechanical read of month labels in
+    net_burn_multiple_cap's own 3-month rolling window (per covenants.py,
+    unmodified) — not a "has the number settled" flag. For a 6-month
+    projection from 2026-12: months 1-2 have real 2026 months in their
+    window (False); from month 3 onward every window month is itself a
+    projected month (True) — even though month 3's *value* (3.42) is still
+    far from the 1.5 target, because it sums month 1's burn, which was
+    itself built from a quarter window that still touched real history.
+    That numeric-settling lag is documented, expected, and belongs to the
+    frontend's interpretation of the flag, not to this flag's definition."""
+    from creditpulse.api import build_simulate_payload
+
+    payload = build_simulate_payload({"months_forward": "6", "arr_growth_pct": "5", "burn_multiple": "1.5"})
+    flags_by_month = {r["month"]: r["window_fully_projected"] for r in payload["results"] if r["covenant"] == "net_burn_multiple_cap"}
+
+    assert flags_by_month == {
+        "2027-01": False,
+        "2027-02": False,
+        "2027-03": True,
+        "2027-04": True,
+        "2027-05": True,
+        "2027-06": True,
+    }
+
+    # month 3 is a label-pure window whose value has NOT yet converged near
+    # 1.5 — proves the flag tracks window composition, not numeric settling.
+    month_3 = next(r for r in payload["results"] if r["covenant"] == "net_burn_multiple_cap" and r["month"] == "2027-03")
+    assert month_3["window_fully_projected"] is True
+    assert abs(month_3["computed_value"] - 1.5) > 1.0
+
+
+def test_simulate_arr_growth_comparator_metadata_reflects_real_vs_projected_history():
+    """comparator_is_projected / comparator_month describe arr_growth_floor's
+    own 12-months-back comparator (per covenants.py, unmodified). For a
+    6-month projection every comparator is still a real 2026 month (False);
+    projecting far enough (13 months) makes the 13th month's comparator the
+    1st projected month itself (True)."""
+    from creditpulse.api import build_simulate_payload
+
+    short_run = build_simulate_payload({"months_forward": "6", "arr_growth_pct": "5", "burn_multiple": "1.5"})
+    growth_rows = {r["month"]: r for r in short_run["results"] if r["covenant"] == "arr_growth_floor"}
+    for month, row in growth_rows.items():
+        assert row["comparator_is_projected"] is False
+        assert row["comparator_month"] == f"{int(month[:4]) - 1}{month[4:]}"
+
+    long_run = build_simulate_payload({"months_forward": "13", "arr_growth_pct": "5", "burn_multiple": "1.5"})
+    growth_by_month = {r["month"]: r for r in long_run["results"] if r["covenant"] == "arr_growth_floor"}
+    assert growth_by_month["2027-12"]["comparator_month"] == "2026-12"
+    assert growth_by_month["2027-12"]["comparator_is_projected"] is False  # real starting month
+    assert growth_by_month["2028-01"]["comparator_month"] == "2027-01"
+    assert growth_by_month["2028-01"]["comparator_is_projected"] is True  # first fully-projected comparator
+
+
 def test_covenants_breach_boundary_is_not_misclassified_by_float_noise():
     """A value that lands a hair above an exact threshold purely from float
     division noise (not a real breach) must not be classified as breached.

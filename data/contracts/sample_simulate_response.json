@@ -1,5 +1,5 @@
 {
-  "_description": "Example request/response pairs for GET /simulate. Generated directly from creditpulse.api.build_simulate_payload() to guarantee this file matches the live endpoint exactly, the same way sample_ask_response.json and the rest of this directory's contract mock were built against the real payload builders. The second example (negative arr_growth_pct) shows monitor_covenants()'s own \"Infinity\" rule for a covenant breach with no finite burn multiple.",
+  "_description": "Example request/response pairs for GET /simulate. Generated directly from creditpulse.api.build_simulate_payload() to guarantee this file matches the live endpoint exactly, the same way sample_ask_response.json and the rest of this directory's contract mock were built against the real payload builders. The second example (negative arr_growth_pct) shows monitor_covenants()'s own \"Infinity\" rule for a covenant breach with no finite burn multiple. net_burn_multiple_cap rows carry a window_fully_projected flag and arr_growth_floor rows carry comparator_month / comparator_is_projected \u2014 both purely descriptive of which calendar months feed that covenant's own window/comparator, see CreditPulse_PRD.md \u00a76.",
   "examples": [
     {
       "request": "GET /simulate?months_forward=3&arr_growth_pct=5&burn_multiple=0.5",
@@ -58,7 +58,7 @@
             "computed_value": 9.561149053,
             "threshold": 4.0,
             "breached": false,
-            "citation": "loan_agreement.md §4.1",
+            "citation": "loan_agreement.md \u00a74.1",
             "llm_annotation": null,
             "human_review": false
           },
@@ -68,9 +68,11 @@
             "computed_value": 25.940570447,
             "threshold": 20.0,
             "breached": false,
-            "citation": "loan_agreement.md §4.2",
+            "citation": "loan_agreement.md \u00a74.2",
             "llm_annotation": null,
-            "human_review": false
+            "human_review": false,
+            "comparator_month": "2026-01",
+            "comparator_is_projected": false
           },
           {
             "month": "2027-01",
@@ -78,7 +80,7 @@
             "computed_value": 110.0,
             "threshold": 100.0,
             "breached": false,
-            "citation": "loan_agreement.md §4.4",
+            "citation": "loan_agreement.md \u00a74.4",
             "llm_annotation": null,
             "human_review": false
           },
@@ -88,9 +90,10 @@
             "computed_value": 0.692998441,
             "threshold": 1.5,
             "breached": false,
-            "citation": "loan_agreement.md §4.3",
+            "citation": "loan_agreement.md \u00a74.3",
             "llm_annotation": null,
-            "human_review": false
+            "human_review": false,
+            "window_fully_projected": false
           },
           {
             "month": "2027-02",
@@ -98,7 +101,7 @@
             "computed_value": 45.478200908,
             "threshold": 4.0,
             "breached": false,
-            "citation": "loan_agreement.md §4.1",
+            "citation": "loan_agreement.md \u00a74.1",
             "llm_annotation": null,
             "human_review": false
           },
@@ -108,9 +111,11 @@
             "computed_value": 22.660056667,
             "threshold": 20.0,
             "breached": false,
-            "citation": "loan_agreement.md §4.2",
+            "citation": "loan_agreement.md \u00a74.2",
             "llm_annotation": null,
-            "human_review": false
+            "human_review": false,
+            "comparator_month": "2026-02",
+            "comparator_is_projected": false
           },
           {
             "month": "2027-02",
@@ -118,7 +123,7 @@
             "computed_value": 110.0,
             "threshold": 100.0,
             "breached": false,
-            "citation": "loan_agreement.md §4.4",
+            "citation": "loan_agreement.md \u00a74.4",
             "llm_annotation": null,
             "human_review": false
           },
@@ -128,9 +133,10 @@
             "computed_value": 2.235176181,
             "threshold": 1.5,
             "breached": true,
-            "citation": "loan_agreement.md §4.3",
+            "citation": "loan_agreement.md \u00a74.3",
             "llm_annotation": null,
-            "human_review": false
+            "human_review": false,
+            "window_fully_projected": false
           },
           {
             "month": "2027-03",
@@ -138,7 +144,7 @@
             "computed_value": 44.293768516,
             "threshold": 4.0,
             "breached": false,
-            "citation": "loan_agreement.md §4.1",
+            "citation": "loan_agreement.md \u00a74.1",
             "llm_annotation": null,
             "human_review": false
           },
@@ -148,9 +154,11 @@
             "computed_value": 19.57261165,
             "threshold": 20.0,
             "breached": true,
-            "citation": "loan_agreement.md §4.2",
+            "citation": "loan_agreement.md \u00a74.2",
             "llm_annotation": null,
-            "human_review": false
+            "human_review": false,
+            "comparator_month": "2026-03",
+            "comparator_is_projected": false
           },
           {
             "month": "2027-03",
@@ -158,7 +166,7 @@
             "computed_value": 110.0,
             "threshold": 100.0,
             "breached": false,
-            "citation": "loan_agreement.md §4.4",
+            "citation": "loan_agreement.md \u00a74.4",
             "llm_annotation": null,
             "human_review": false
           },
@@ -168,9 +176,10 @@
             "computed_value": 1.13956191,
             "threshold": 1.5,
             "breached": false,
-            "citation": "loan_agreement.md §4.3",
+            "citation": "loan_agreement.md \u00a74.3",
             "llm_annotation": null,
-            "human_review": false
+            "human_review": false,
+            "window_fully_projected": true
           }
         ]
       }
@@ -222,7 +231,7 @@
             "computed_value": 32.105704567,
             "threshold": 4.0,
             "breached": false,
-            "citation": "loan_agreement.md §4.1",
+            "citation": "loan_agreement.md \u00a74.1",
             "llm_annotation": null,
             "human_review": false
           },
@@ -232,9 +241,11 @@
             "computed_value": 21.756281787,
             "threshold": 20.0,
             "breached": false,
-            "citation": "loan_agreement.md §4.2",
+            "citation": "loan_agreement.md \u00a74.2",
             "llm_annotation": null,
-            "human_review": false
+            "human_review": false,
+            "comparator_month": "2026-01",
+            "comparator_is_projected": false
           },
           {
             "month": "2027-01",
@@ -242,7 +253,7 @@
             "computed_value": 110.0,
             "threshold": 100.0,
             "breached": false,
-            "citation": "loan_agreement.md §4.4",
+            "citation": "loan_agreement.md \u00a74.4",
             "llm_annotation": null,
             "human_review": false
           },
@@ -252,9 +263,10 @@
             "computed_value": 3.633084932,
             "threshold": 1.5,
             "breached": true,
-            "citation": "loan_agreement.md §4.3",
+            "citation": "loan_agreement.md \u00a74.3",
             "llm_annotation": null,
-            "human_review": false
+            "human_review": false,
+            "window_fully_projected": false
           },
           {
             "month": "2027-02",
@@ -262,7 +274,7 @@
             "computed_value": 31.105704567,
             "threshold": 4.0,
             "breached": false,
-            "citation": "loan_agreement.md §4.1",
+            "citation": "loan_agreement.md \u00a74.1",
             "llm_annotation": null,
             "human_review": false
           },
@@ -272,9 +284,11 @@
             "computed_value": 14.644866667,
             "threshold": 20.0,
             "breached": true,
-            "citation": "loan_agreement.md §4.2",
+            "citation": "loan_agreement.md \u00a74.2",
             "llm_annotation": null,
-            "human_review": false
+            "human_review": false,
+            "comparator_month": "2026-02",
+            "comparator_is_projected": false
           },
           {
             "month": "2027-02",
@@ -282,7 +296,7 @@
             "computed_value": 110.0,
             "threshold": 100.0,
             "breached": false,
-            "citation": "loan_agreement.md §4.4",
+            "citation": "loan_agreement.md \u00a74.4",
             "llm_annotation": null,
             "human_review": false
           },
@@ -292,9 +306,10 @@
             "computed_value": "Infinity",
             "threshold": 1.5,
             "breached": true,
-            "citation": "loan_agreement.md §4.3",
+            "citation": "loan_agreement.md \u00a74.3",
             "llm_annotation": null,
-            "human_review": false
+            "human_review": false,
+            "window_fully_projected": false
           }
         ]
       }

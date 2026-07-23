@@ -161,3 +161,32 @@ def simulate_covenants(
     projected_months = {row.month for row in projected_rows}
     results = [result for result in all_results if result.month in projected_months]
     return SimulationResult(results=results, projected_rows=projected_rows)
+
+
+def describe_result_metadata(result: CovenantResult, projected_months: set[str]) -> dict[str, bool | str]:
+    """/simulate-only transparency metadata about whether a covenant's own
+    window/comparator (per monitor_covenants(), unmodified) has fully
+    rotated into projected months yet. Purely descriptive of month
+    membership — does not touch computed_value or any threshold.
+
+    net_burn_multiple_cap uses a 3-month rolling window (this month and the
+    two before it); arr_growth_floor compares against the month exactly 12
+    months back. Both are read directly from monitor_covenants()'s own
+    window definitions, not redefined here.
+
+    Caveat (label purity != numeric settling): window_fully_projected only
+    means every month *label* in the window is a projected month. A
+    projected month's own value can still be elevated by history it
+    inherited when IT was generated (e.g. its own net-new-ARR was computed
+    against a still-real prior month) and that value keeps contributing to
+    the rolling sum for as long as it sits inside the window. So numeric
+    convergence lags window-label purity by up to one extra month — see the
+    /simulate PRD section and CreditPulse_PRD.md for a worked example.
+    """
+    if result.covenant == "net_burn_multiple_cap":
+        window_months = (_add_months(result.month, -2), _add_months(result.month, -1), result.month)
+        return {"window_fully_projected": all(month in projected_months for month in window_months)}
+    if result.covenant == "arr_growth_floor":
+        comparator_month = _add_months(result.month, -12)
+        return {"comparator_month": comparator_month, "comparator_is_projected": comparator_month in projected_months}
+    return {}
