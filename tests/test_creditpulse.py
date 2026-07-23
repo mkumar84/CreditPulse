@@ -525,6 +525,40 @@ def test_simulate_burn_multiple_window_fully_projected_flag_matches_window_compo
     assert abs(month_3["computed_value"] - 1.5) > 1.0
 
 
+def test_simulate_numerically_settled_is_false_for_2027_03_true_from_2027_04():
+    """numerically_settled distinguishes window-label purity from actual
+    numeric settling. 2027-01 is the only projected month whose net_new_arr
+    was computed against a real, strictly-pre-start_month reference
+    (2026-11); that one elevated value then sits inside the 3-month rolling
+    window through 2027-03. window_fully_projected is already true at
+    2027-03 (every window month is a projected label), but
+    numerically_settled must stay false there since 2027-01's value is
+    still inside the window and the computed_value (~3.42) is nowhere near
+    the requested 1.5. Both flags agree from 2027-04 onward, once 2027-01
+    has rolled out of the window."""
+    from creditpulse.api import build_simulate_payload
+
+    payload = build_simulate_payload({"months_forward": "6", "arr_growth_pct": "5", "burn_multiple": "1.5"})
+    rows = {r["month"]: r for r in payload["results"] if r["covenant"] == "net_burn_multiple_cap"}
+
+    assert rows["2027-03"]["window_fully_projected"] is True  # unchanged, still label-pure
+    assert rows["2027-03"]["numerically_settled"] is False
+    assert abs(rows["2027-03"]["computed_value"] - 1.5) > 1.0  # genuinely unsettled, not borderline
+
+    settled_by_month = {month: row["numerically_settled"] for month, row in rows.items()}
+    assert settled_by_month == {
+        "2027-01": False,
+        "2027-02": False,
+        "2027-03": False,
+        "2027-04": True,
+        "2027-05": True,
+        "2027-06": True,
+    }
+    for month in ("2027-04", "2027-05", "2027-06"):
+        assert rows[month]["numerically_settled"] is True
+        assert abs(rows[month]["computed_value"] - 1.5) < 0.01
+
+
 def test_simulate_arr_growth_comparator_metadata_reflects_real_vs_projected_history():
     """comparator_is_projected / comparator_month describe arr_growth_floor's
     own 12-months-back comparator (per covenants.py, unmodified). For a

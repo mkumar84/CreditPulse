@@ -182,10 +182,27 @@ def describe_result_metadata(result: CovenantResult, projected_months: set[str])
     the rolling sum for as long as it sits inside the window. So numeric
     convergence lags window-label purity by up to one extra month — see the
     /simulate PRD section and CreditPulse_PRD.md for a worked example.
+
+    numerically_settled (net_burn_multiple_cap only) closes that gap using
+    an existing structural fact rather than a numeric convergence
+    tolerance: in _generate_projected_rows(), only the FIRST projected
+    month can ever have its net_new_arr computed against a quarter_prior[0]
+    that falls strictly before start_month — every later projected month's
+    quarter_prior[0] is either start_month itself (the compounding anchor,
+    not "old" history) or a later projected month, so no other month can
+    carry that kind of boundary contamination. That one affected month's
+    value then sits inside monitor_covenants()'s 3-month rolling window for
+    exactly 3 evaluations (itself, and the next two), so
+    numerically_settled is true only once the first projected month has
+    rolled out of the window entirely — one evaluation later than
+    window_fully_projected alone would suggest.
     """
     if result.covenant == "net_burn_multiple_cap":
         window_months = (_add_months(result.month, -2), _add_months(result.month, -1), result.month)
-        return {"window_fully_projected": all(month in projected_months for month in window_months)}
+        window_fully_projected = all(month in projected_months for month in window_months)
+        first_projected_month = min(projected_months)
+        numerically_settled = window_fully_projected and first_projected_month not in window_months
+        return {"window_fully_projected": window_fully_projected, "numerically_settled": numerically_settled}
     if result.covenant == "arr_growth_floor":
         comparator_month = _add_months(result.month, -12)
         return {"comparator_month": comparator_month, "comparator_is_projected": comparator_month in projected_months}
