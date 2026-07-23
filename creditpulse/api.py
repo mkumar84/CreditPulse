@@ -393,6 +393,9 @@ def _serialize_covenant_result(result: CovenantResult) -> dict[str, Any]:
         "citation": result.citation,
         "llm_annotation": result.llm_annotation,
         "human_review": result.human_review,
+        "cash_balance_millions": result.cash_balance_millions,
+        "cash_floor_threshold": result.cash_floor_threshold,
+        "breach_reason": result.breach_reason,
     }
 
 

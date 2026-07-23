@@ -30,6 +30,9 @@ class CovenantResult:
     citation: str
     llm_annotation: str | None = None
     human_review: bool = False
+    cash_balance_millions: float | None = None
+    cash_floor_threshold: float | None = None
+    breach_reason: str | None = None
 
 
 def load_financials(path: str | Path) -> list[MonthlyFinancial]:
@@ -64,8 +67,34 @@ def monitor_covenants(financials: list[MonthlyFinancial]) -> list[CovenantResult
     by_month = {item.month: item for item in financials}
     for idx, item in enumerate(financials):
         runway = round(item.cash_balance_millions / item.gross_burn_millions, _RATIO_PRECISION)
-        liquidity_breach = item.cash_balance_millions < 8.0 or runway < 4.0
-        results.append(CovenantResult(item.month, "minimum_liquidity_cash_runway", runway, 4.0, liquidity_breach, "loan_agreement.md §4.1"))
+        cash_floor_breach = item.cash_balance_millions < 8.0
+        runway_breach = runway < 4.0
+        liquidity_breach = cash_floor_breach or runway_breach
+        # §4.1 is a two-part covenant (cash floor OR runway floor); computed_value/
+        # threshold above only carry the runway half, so a breach driven purely by
+        # the cash floor would otherwise look inverted (value > threshold, breached
+        # true). breach_reason names whichever condition(s) actually fired.
+        if cash_floor_breach and runway_breach:
+            breach_reason = "both"
+        elif cash_floor_breach:
+            breach_reason = "cash_floor"
+        elif runway_breach:
+            breach_reason = "runway"
+        else:
+            breach_reason = None
+        results.append(
+            CovenantResult(
+                item.month,
+                "minimum_liquidity_cash_runway",
+                runway,
+                4.0,
+                liquidity_breach,
+                "loan_agreement.md §4.1",
+                cash_balance_millions=item.cash_balance_millions,
+                cash_floor_threshold=8.0,
+                breach_reason=breach_reason,
+            )
+        )
 
         prior_year = f"{int(item.month[:4]) - 1}{item.month[4:]}"
         if prior_year in by_month:

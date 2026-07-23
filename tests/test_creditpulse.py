@@ -427,6 +427,46 @@ def test_simulate_liquidity_covenant_breach_direction_is_not_inverted():
         assert comp_row["breached"] is False  # correctly reads compliant, not inverted
 
 
+def test_liquidity_breach_reason_names_which_sub_condition_actually_fired():
+    """cash_balance_millions, cash_floor_threshold, and breach_reason expose
+    the previously-hidden cash-floor half of minimum_liquidity_cash_runway's
+    two-part OR (loan_agreement.md §4.1), computed by covenants.py and
+    unchanged by the endpoint — /covenants and /simulate both go through
+    the exact same monitor_covenants() call, so this must hold in both.
+
+    2027-02 (burn_multiple=1.5 scenario): runway (11.25) is compliant but
+    cash ($6.71M) is below the $8M floor -> breach_reason == "cash_floor",
+    the exact case from the bug report that looked "inverted" without this
+    field. 2027-01: BOTH runway (2.52) and cash ($7.30M) fail at once ->
+    breach_reason == "both", not "runway" alone — the two conditions
+    happen to fail together there, same as every historical breach month.
+    A compliant month must read breach_reason: None."""
+    from creditpulse.api import build_simulate_payload, build_covenant_payload
+
+    payload = build_simulate_payload({"months_forward": "6", "arr_growth_pct": "5", "burn_multiple": "1.5"})
+    rows = {r["month"]: r for r in payload["results"] if r["covenant"] == "minimum_liquidity_cash_runway"}
+
+    row_2027_01 = rows["2027-01"]
+    assert row_2027_01["computed_value"] < row_2027_01["threshold"]  # runway itself non-compliant
+    assert row_2027_01["cash_balance_millions"] < row_2027_01["cash_floor_threshold"]  # cash also non-compliant
+    assert row_2027_01["breach_reason"] == "both"
+
+    row_2027_02 = rows["2027-02"]
+    assert row_2027_02["computed_value"] > row_2027_02["threshold"]  # runway compliant
+    assert row_2027_02["cash_balance_millions"] < row_2027_02["cash_floor_threshold"]  # cash non-compliant
+    assert row_2027_02["breach_reason"] == "cash_floor"
+    assert row_2027_02["breached"] is True
+
+    # Same fields, same values, present via /covenants too — proves this
+    # isn't /simulate-only patchwork; it comes from the shared function.
+    covenants_payload = build_covenant_payload()
+    historical_rows = {r["month"]: r for r in covenants_payload["results"] if r["covenant"] == "minimum_liquidity_cash_runway"}
+    assert historical_rows["2026-07"]["breach_reason"] == "both"  # the one historical breach: both fail together
+    compliant_month = next(r for r in historical_rows.values() if not r["breached"])
+    assert compliant_month["breach_reason"] is None
+    assert compliant_month["cash_balance_millions"] >= compliant_month["cash_floor_threshold"]
+
+
 def test_simulate_arr_growth_deceleration_correctly_projects_breach_at_right_month():
     """Known-bad scenario: ARR growth dropping to 5% (well under the 20% floor).
 
