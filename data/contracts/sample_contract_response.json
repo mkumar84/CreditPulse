@@ -8,13 +8,22 @@
         "confidence": 0.99
       }
     },
+    "facility_size_millions": {
+      "value": 15.0,
+      "citation": {
+        "document": "loan_agreement.md",
+        "section": "1.1",
+        "line": 4,
+        "confidence": 0.99
+      }
+    },
     "covenants": {
       "minimum_liquidity_cash_millions": {
         "value": 8.0,
         "citation": {
           "document": "loan_agreement.md",
           "section": "4.1",
-          "line": 4,
+          "line": 7,
           "confidence": 0.99
         }
       },
@@ -23,7 +32,7 @@
         "citation": {
           "document": "loan_agreement.md",
           "section": "4.1",
-          "line": 4,
+          "line": 7,
           "confidence": 0.99
         }
       },
@@ -32,7 +41,7 @@
         "citation": {
           "document": "loan_agreement.md",
           "section": "4.2",
-          "line": 7,
+          "line": 10,
           "confidence": 0.98
         }
       },
@@ -41,7 +50,7 @@
         "citation": {
           "document": "loan_agreement.md",
           "section": "4.3",
-          "line": 10,
+          "line": 13,
           "confidence": 0.98
         }
       },
@@ -50,7 +59,7 @@
         "citation": {
           "document": "loan_agreement.md",
           "section": "4.4",
-          "line": 13,
+          "line": 16,
           "confidence": 0.98
         }
       }
@@ -1338,7 +1347,7 @@
     ]
   },
   "memo": {
-    "model_label": "Claude API (memo drafter)",
+    "model_label": "Claude API (memo drafter) \u2014 deterministic fallback, no live key",
     "status": "human_review_required",
     "final_allowed": false,
     "sections": [
@@ -1534,7 +1543,7 @@
         "field_name": "Facility Size",
         "accuracy": 1.0,
         "n": 1,
-        "citation": "loan_agreement.md \u00a74.1"
+        "citation": "loan_agreement.md \u00a71.1"
       },
       {
         "field_name": "MAC-Style / Committed MRR Interpretation",
