@@ -161,3 +161,63 @@ def simulate_covenants(
     projected_months = {row.month for row in projected_rows}
     results = [result for result in all_results if result.month in projected_months]
     return SimulationResult(results=results, projected_rows=projected_rows)
+
+
+def describe_result_metadata(result: CovenantResult, projected_months: set[str]) -> dict[str, bool | str]:
+    """/simulate-only transparency metadata about whether a covenant's own
+    window/comparator (per monitor_covenants(), unmodified) has fully
+    rotated into projected months yet. Purely descriptive of month
+    membership — does not touch computed_value or any threshold.
+
+    net_burn_multiple_cap uses a 3-month rolling window (this month and the
+    two before it); arr_growth_floor compares against the month exactly 12
+    months back. Both are read directly from monitor_covenants()'s own
+    window definitions, not redefined here.
+
+    Caveat (label purity != numeric settling): window_fully_projected only
+    means every month *label* in the window is a projected month. A
+    projected month's own value can still be elevated by history it
+    inherited when IT was generated (e.g. its own net-new-ARR was computed
+    against a still-real prior month) and that value keeps contributing to
+    the rolling sum for as long as it sits inside the window. So numeric
+    convergence lags window-label purity by up to one extra month — see the
+    /simulate PRD section and CreditPulse_PRD.md for a worked example.
+
+    numerically_settled (net_burn_multiple_cap only) closes that gap using
+    an existing structural fact rather than a numeric convergence
+    tolerance: in _generate_projected_rows(), only the FIRST projected
+    month can ever have its net_new_arr computed against a quarter_prior[0]
+    that falls strictly before start_month — every later projected month's
+    quarter_prior[0] is either start_month itself (the compounding anchor,
+    not "old" history) or a later projected month, so no other month can
+    carry that kind of boundary contamination. That one affected month's
+    value then sits inside monitor_covenants()'s 3-month rolling window for
+    exactly 3 evaluations (itself, and the next two), so
+    numerically_settled is true only once the first projected month has
+    rolled out of the window entirely — one evaluation later than
+    window_fully_projected alone would suggest.
+
+    numerically_settled (also on arr_growth_floor) closes the mirror-image
+    gap in comparator_is_projected using the same reasoning: ARR compounds
+    smoothly from start_month, so start_month's own real ARR is exactly the
+    t=0 anchor of the new growth rate, not stale history — a comparator
+    equal to start_month reads the new rate just as cleanly as a comparator
+    that's a later projected month does. comparator_is_projected is false
+    for both (start_month itself is real, not in projected_months), so it
+    under-reports settling by exactly one month at the boundary. Any
+    comparator strictly before start_month is genuine stale history and
+    stays unsettled.
+    """
+    if result.covenant == "net_burn_multiple_cap":
+        window_months = (_add_months(result.month, -2), _add_months(result.month, -1), result.month)
+        window_fully_projected = all(month in projected_months for month in window_months)
+        first_projected_month = min(projected_months)
+        numerically_settled = window_fully_projected and first_projected_month not in window_months
+        return {"window_fully_projected": window_fully_projected, "numerically_settled": numerically_settled}
+    if result.covenant == "arr_growth_floor":
+        comparator_month = _add_months(result.month, -12)
+        comparator_is_projected = comparator_month in projected_months
+        start_month = _add_months(min(projected_months), -1)
+        numerically_settled = comparator_is_projected or comparator_month == start_month
+        return {"comparator_month": comparator_month, "comparator_is_projected": comparator_is_projected, "numerically_settled": numerically_settled}
+    return {}
