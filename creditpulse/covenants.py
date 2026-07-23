@@ -51,18 +51,26 @@ def load_financials(path: str | Path) -> list[MonthlyFinancial]:
         ]
 
 
+#  Ratios are rounded before their breach comparison so ordinary float
+# division noise (e.g. a burn multiple landing at 1.5000000000000435 instead
+# of 1.5) can't flip a value sitting exactly at the threshold into a false
+# breach. 9 decimal places is far below any real financial precision here —
+# it only absorbs float noise, it never masks a genuine boundary case.
+_RATIO_PRECISION = 9
+
+
 def monitor_covenants(financials: list[MonthlyFinancial]) -> list[CovenantResult]:
     results: list[CovenantResult] = []
     by_month = {item.month: item for item in financials}
     for idx, item in enumerate(financials):
-        runway = item.cash_balance_millions / item.gross_burn_millions
+        runway = round(item.cash_balance_millions / item.gross_burn_millions, _RATIO_PRECISION)
         liquidity_breach = item.cash_balance_millions < 8.0 or runway < 4.0
         results.append(CovenantResult(item.month, "minimum_liquidity_cash_runway", runway, 4.0, liquidity_breach, "loan_agreement.md §4.1"))
 
         prior_year = f"{int(item.month[:4]) - 1}{item.month[4:]}"
         if prior_year in by_month:
             prior_arr = by_month[prior_year].arr_millions
-            growth = (item.arr_millions - prior_arr) / prior_arr * 100
+            growth = round((item.arr_millions - prior_arr) / prior_arr * 100, _RATIO_PRECISION)
             results.append(CovenantResult(item.month, "arr_growth_floor", growth, 20.0, growth < 20.0, "loan_agreement.md §4.2"))
 
         results.append(CovenantResult(item.month, "nrr_floor", item.nrr_pct, 100.0, item.nrr_pct < 100.0, "loan_agreement.md §4.4"))
@@ -72,7 +80,7 @@ def monitor_covenants(financials: list[MonthlyFinancial]) -> list[CovenantResult
             quarterly_burn = sum(row.gross_burn_millions for row in quarter)
             net_new_arr = item.arr_millions - quarter[0].arr_millions
             annualized_net_new_arr = net_new_arr * 4
-            burn_multiple = float("inf") if annualized_net_new_arr <= 0 else quarterly_burn / annualized_net_new_arr
+            burn_multiple = float("inf") if annualized_net_new_arr <= 0 else round(quarterly_burn / annualized_net_new_arr, _RATIO_PRECISION)
             restatement_review = any("revenue restatement" in row.notes for row in quarter)
             results.append(CovenantResult(item.month, "net_burn_multiple_cap", burn_multiple, 1.5, (burn_multiple > 1.5) and not restatement_review, "loan_agreement.md §4.3", "Restatement period requires analyst validation before covenant action." if restatement_review else None, restatement_review))
 
