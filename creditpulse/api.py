@@ -16,7 +16,9 @@ import os
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
+from urllib.parse import parse_qs, urlparse
 
+from creditpulse.ask import answer_question
 from creditpulse.covenants import CovenantResult, MonthlyFinancial, load_financials, monitor_covenants
 from creditpulse.evals import covenant_precision_recall, extraction_accuracy, load_prompt_model_regression, memo_hallucination_rate
 from creditpulse.extraction import extract_from_sources, flatten_extraction_table
@@ -59,6 +61,7 @@ FALLBACK_MEMO_SECTIONS = [
 
 FIELD_CONFIDENCE = {
     "borrower": 0.99,
+    "facility_size_millions": 0.99,
     "minimum_liquidity_cash_millions": 0.99,
     "minimum_cash_runway_months": 0.99,
     "arr_growth_floor_pct": 0.98,
@@ -163,6 +166,16 @@ def build_contract_payload() -> dict[str, Any]:
     }
 
 
+def build_ask_payload(question: str) -> dict[str, Any]:
+    """Answer a question via creditpulse.ask's fixed, deterministic lookups.
+
+    Reuses build_contract_payload() as-is — no value is recomputed and no LLM
+    is called to determine content. A question outside the fixed lookup set
+    gets an explicit "not available" response, never a guessed answer.
+    """
+    return answer_question(question, build_contract_payload())
+
+
 class CreditPulseHandler(BaseHTTPRequestHandler):
     """Minimal JSON API handler for Railway deployment."""
 
@@ -176,7 +189,12 @@ class CreditPulseHandler(BaseHTTPRequestHandler):
     }
 
     def do_GET(self) -> None:
-        route = self.path.split("?", 1)[0]
+        parsed_url = urlparse(self.path)
+        route = parsed_url.path
+        if route == "/ask":
+            question = parse_qs(parsed_url.query).get("q", [""])[0]
+            self._write_json(build_ask_payload(question))
+            return
         if route not in self.routes:
             self._write_json({"error": "not_found", "route": route}, status=404)
             return
@@ -194,6 +212,7 @@ class CreditPulseHandler(BaseHTTPRequestHandler):
 
 def _add_confidence_to_extraction(extraction: dict[str, Any]) -> None:
     extraction["borrower"]["citation"]["confidence"] = FIELD_CONFIDENCE["borrower"]
+    extraction["facility_size_millions"]["citation"]["confidence"] = FIELD_CONFIDENCE["facility_size_millions"]
     for field_name, payload in extraction["covenants"].items():
         payload["citation"]["confidence"] = FIELD_CONFIDENCE[field_name]
     for field_name, payload in extraction["latest_month"].items():

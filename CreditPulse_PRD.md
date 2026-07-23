@@ -12,6 +12,8 @@ CreditPulse is a three-agent diligence-and-monitoring copilot for a fictionalize
 | Covenant monitor | Computes liquidity runway, ARR growth, net burn multiple, and NRR compliance. | Ratios are calculated in code; LLM annotations cannot override them. |
 | Memo drafter | Produces cited monitoring prose. | Unsupported factual claims render as `[NEEDS REVIEW]`. |
 
+`/ask` is **not** a fourth agent. It is a fixed, deterministic lookup index over the same extraction/covenant data the other three services already produce and cite — see §6. It never calls an LLM to determine a value and never guesses; a question outside its fixed lookup set returns an explicit not-available response instead of a generated answer.
+
 ## Venture-debt covenants
 
 The prototype intentionally uses growth-stage lending terminology: ARR growth floor, minimum liquidity / cash runway, burn-to-growth cap, and net revenue retention floor. It avoids leveraged-loan metrics such as DSCR unless explicitly needed for context.
@@ -35,3 +37,7 @@ The Lovable frontend consumes backend JSON from Railway. This repo should expose
 - `GET /memo` returns `model_label`, source-gated memo status, four prose `sections` (`Facility Summary`, `Operating Performance`, `Liquidity & Burn`, `Recommendation`), and a claim-to-source list. Unsupported claims include `source_note: No source — flagged as needs review` and `needs_review: true`.
 - `GET /evals` returns summary-card metrics, raw `breach_counts`, field-level `field_accuracy`, `missing_ground_truth` as an empty array once requested field-level fixtures are covered, and prompt/model regression rows for the evals tab.
 - `GET /contract` returns all of the above in one mock-contract-compatible document for local frontend wiring.
+- `GET /ask?q=<question>` answers a natural-language question against a **fixed set of deterministic lookups** run over the same data `/contract` already serves — no value is recomputed and no LLM determines content. Covers: current ARR/MRR/cash balance/NRR, ARR growth/liquidity-runway/burn-multiple/NRR-floor covenant status, the committed-MRR interpretation, breach months, human-review months, and facility size.
+  - Response shape: `{question, matched, lookup, answer, text, sources, message}`.
+  - When `matched` is `true`: `answer` carries the deterministic value (plus covenant fields like `threshold`/`breached`/`human_review`/`llm_annotation` where applicable), `text` is a template-generated natural-language sentence built only from that value, `sources` is a non-empty array of `{field, citation, ...}` reusing the exact citation already attached to that field elsewhere in the payload, and `message` is `null`.
+  - When `matched` is `false` (the question doesn't match any fixed lookup): `lookup`, `answer` are `null`, `sources` is `[]`, and `message` is a fixed explanatory string. This is the required behavior for anything outside the lookup set — CreditPulse never guesses an answer to a question it can't cite.

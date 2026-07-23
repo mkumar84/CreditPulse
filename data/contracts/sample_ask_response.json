@@ -1,0 +1,97 @@
+{
+  "_description": "Example request/response pairs for GET /ask?q=<question>. Generated directly from creditpulse.api.build_ask_payload() to guarantee this file matches the live endpoint exactly, the same way the rest of this directory's contract mock was built against creditpulse.api.build_contract_payload().",
+  "examples": [
+    {
+      "request": "GET /ask?q=what's%20the%20current%20burn%20multiple",
+      "response": {
+        "question": "what's the current burn multiple",
+        "matched": true,
+        "lookup": "burn_multiple_status",
+        "answer": {
+          "value": 0.46699999999999997,
+          "as_of_month": "2026-12",
+          "threshold": 1.5,
+          "breached": false,
+          "human_review": false,
+          "llm_annotation": null
+        },
+        "text": "As of 2026-12, the net burn multiple was 0.467x against a 1.5x threshold (in compliance).",
+        "sources": [
+          {
+            "field": "net_burn_multiple_cap",
+            "citation": "loan_agreement.md §4.3"
+          }
+        ],
+        "message": null
+      }
+    },
+    {
+      "request": "GET /ask?q=what's%20the%20facility%20size",
+      "response": {
+        "question": "what's the facility size",
+        "matched": true,
+        "lookup": "facility_size",
+        "answer": {
+          "value": 15.0
+        },
+        "text": "The committed facility size is $15 million.",
+        "sources": [
+          {
+            "field": "facility_size_millions",
+            "citation": {
+              "document": "loan_agreement.md",
+              "section": "1.1",
+              "line": 4,
+              "confidence": 0.99
+            }
+          }
+        ],
+        "message": null
+      }
+    },
+    {
+      "request": "GET /ask?q=when%20did%20the%20covenant%20breach%20happen",
+      "response": {
+        "question": "when did the covenant breach happen",
+        "matched": true,
+        "lookup": "breach_months",
+        "answer": {
+          "value": [
+            "2026-07"
+          ]
+        },
+        "text": "A covenant breach occurred in 2026-07.",
+        "sources": [
+          {
+            "field": "minimum_liquidity_cash_runway",
+            "month": "2026-07",
+            "citation": "loan_agreement.md §4.1"
+          },
+          {
+            "field": "nrr_floor",
+            "month": "2026-07",
+            "citation": "loan_agreement.md §4.4"
+          },
+          {
+            "field": "net_burn_multiple_cap",
+            "month": "2026-07",
+            "citation": "loan_agreement.md §4.3"
+          }
+        ],
+        "message": null
+      }
+    },
+    {
+      "request": "GET /ask?q=what's%20the%20CEO's%20name",
+      "response": {
+        "question": "what's the CEO's name",
+        "matched": false,
+        "lookup": null,
+        "answer": null,
+        "text": null,
+        "sources": [],
+        "message": "Not available in current data. CreditPulse only answers from a fixed set of cited lookups (ARR, MRR, cash balance, NRR, cash runway, burn multiple, ARR growth, committed MRR interpretation, covenant breach months, human-review months, and facility size). It does not generate answers outside that set."
+      }
+    }
+  ]
+}

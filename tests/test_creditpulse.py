@@ -296,3 +296,89 @@ def test_live_drafted_claims_are_still_gated_by_policy(monkeypatch):
     assert unsupported["needs_review"] is True
     assert unsupported["rendered_text"].startswith("[NEEDS REVIEW]")
     assert payload["sections"][0] == {"section_name": "Facility Summary", "text": "Meridian SaaS Co. is the borrower."}
+
+
+@pytest.mark.parametrize(
+    ("question", "expected_lookup", "expected_value", "citation_fragment"),
+    [
+        ("what's the current ARR", "current_arr", 36.5, "monthly_financials.csv"),
+        ("what's the current MRR", "current_mrr", 3.04, "monthly_financials.csv"),
+        ("what's the current cash balance", "current_cash_balance", 10.2, "monthly_financials.csv"),
+        ("what's the current NRR", "current_nrr", 110.0, "monthly_financials.csv"),
+        ("what's the NRR floor covenant status", "nrr_floor_status", 110.0, "loan_agreement.md §4.4"),
+        ("what's the current cash runway", "liquidity_runway_status", 6.8, "loan_agreement.md §4.1"),
+        ("what's the current burn multiple", "burn_multiple_status", 0.467, "loan_agreement.md §4.3"),
+        ("is the ARR growth floor covenant breached", "arr_growth_floor_status", 29.4326, "loan_agreement.md §4.2"),
+        ("what's the committed MRR interpretation", "committed_mrr_interpretation_status", 3.04, "loan_agreement.md §4.5"),
+        ("when did the covenant breach happen", "breach_months", ["2026-07"], "loan_agreement.md"),
+        (
+            "what months are flagged for human review",
+            "human_review_months",
+            ["2026-04", "2026-05", "2026-06", "2026-12"],
+            "loan_agreement.md",
+        ),
+        ("what's the facility size", "facility_size", 15.0, "loan_agreement.md"),
+    ],
+)
+def test_ask_lookup_returns_correct_cited_value(question, expected_lookup, expected_value, citation_fragment):
+    """One case per fixed lookup category: matches the right lookup, returns the
+    right value, and carries a citation traceable to the same source used
+    elsewhere in the API (never a fabricated or uncited answer)."""
+    from creditpulse.api import build_ask_payload
+
+    result = build_ask_payload(question)
+    assert result["matched"] is True
+    assert result["lookup"] == expected_lookup
+    assert result["sources"], "a matched answer must always carry at least one source citation"
+
+    if isinstance(expected_value, float):
+        assert result["answer"]["value"] == pytest.approx(expected_value, rel=1e-3)
+    else:
+        assert result["answer"]["value"] == expected_value
+
+    assert citation_fragment in str(result["sources"][0]["citation"])
+
+
+@pytest.mark.parametrize(
+    "question",
+    [
+        "what's the CEO's name",
+        "what's the weather today",
+        "should we approve this loan",
+        "",
+    ],
+)
+def test_ask_out_of_scope_question_returns_explicit_not_available(question):
+    """The most important behavior to test: an unmatched question must never
+    be guessed at — it gets the fixed not-available response, verbatim."""
+    from creditpulse.api import build_ask_payload
+    from creditpulse.ask import NOT_AVAILABLE_MESSAGE
+
+    result = build_ask_payload(question)
+    assert result["matched"] is False
+    assert result["lookup"] is None
+    assert result["answer"] is None
+    assert result["sources"] == []
+    assert result["message"] == NOT_AVAILABLE_MESSAGE
+
+
+def test_ask_answer_carries_deterministic_value_alongside_phrased_text():
+    """Requirement: even the human-readable text is backed by a returned
+    deterministic value + citation the UI can display side by side."""
+    from creditpulse.api import build_ask_payload
+
+    result = build_ask_payload("what's the current burn multiple")
+    assert result["text"] == "As of 2026-12, the net burn multiple was 0.467x against a 1.5x threshold (in compliance)."
+    assert result["answer"]["value"] == pytest.approx(0.467, rel=1e-3)
+    assert result["answer"]["breached"] is False
+    assert result["sources"] == [{"field": "net_burn_multiple_cap", "citation": "loan_agreement.md §4.3"}]
+
+
+def test_ask_facility_size_cites_the_actual_facility_clause_not_the_liquidity_covenant():
+    """Regression guard for the earlier Facility Size mislabeling: /ask must cite
+    §1.1 (the real committed facility clause), never §4.1 (the liquidity covenant)."""
+    from creditpulse.api import build_ask_payload
+
+    citation = build_ask_payload("what's the facility size")["sources"][0]["citation"]
+    assert citation["document"] == "loan_agreement.md"
+    assert citation["section"] == "1.1"
