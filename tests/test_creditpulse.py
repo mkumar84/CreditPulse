@@ -382,3 +382,94 @@ def test_ask_facility_size_cites_the_actual_facility_clause_not_the_liquidity_co
     citation = build_ask_payload("what's the facility size")["sources"][0]["citation"]
     assert citation["document"] == "loan_agreement.md"
     assert citation["section"] == "1.1"
+
+
+def test_simulate_arr_growth_deceleration_correctly_projects_breach_at_right_months():
+    """Known-bad scenario: ARR growth dropping to 5% (well under the 20% floor)
+    must breach arr_growth_floor in every projected month, with the covenant's
+    own threshold (untouched, reused from covenants.py) and computed_value
+    matching exactly what was requested."""
+    from creditpulse.api import build_simulate_payload
+
+    payload = build_simulate_payload({"months_forward": "3", "arr_growth_pct": "5", "burn_multiple": "0.5"})
+
+    assert payload["is_simulation"] is True
+    assert payload["start_month"] == "2026-12"
+    assert payload["projected_months"] == ["2027-01", "2027-02", "2027-03"]
+    assert payload["breach_months"] == ["2027-01", "2027-02", "2027-03"]
+
+    growth_by_month = {r["month"]: r for r in payload["results"] if r["covenant"] == "arr_growth_floor"}
+    assert set(growth_by_month) == {"2027-01", "2027-02", "2027-03"}
+    for month, result in growth_by_month.items():
+        assert result["computed_value"] == pytest.approx(5.0, abs=1e-3), month
+        assert result["threshold"] == 20.0  # reused from covenants.py's own literal, not redefined here
+        assert result["breached"] is True
+        assert result["citation"] == "loan_agreement.md §4.2"
+
+
+def test_simulate_reuses_the_exact_same_formula_not_a_reimplementation():
+    """Feed /simulate the REAL historical growth/burn-multiple/NRR that actually
+    occurred in 2026-07, projecting one month forward from 2026-06. If /simulate
+    used a second, parallel implementation of the covenant math, these would
+    not match to the last decimal; they do, because both paths ultimately call
+    the exact same creditpulse.covenants.monitor_covenants()."""
+    from creditpulse.api import build_simulate_payload
+    from creditpulse.covenants import load_financials, monitor_covenants
+
+    financials = load_financials("data/synthetic/monthly_financials.csv")
+    real = {r.covenant: r for r in monitor_covenants(financials) if r.month == "2026-07"}
+
+    payload = build_simulate_payload({
+        "start_month": "2026-06",
+        "months_forward": "1",
+        "arr_growth_pct": str(real["arr_growth_floor"].computed_value),
+        "burn_multiple": str(real["net_burn_multiple_cap"].computed_value),
+        "nrr_pct": str(real["nrr_floor"].computed_value),
+    })
+    sim = {r["covenant"]: r for r in payload["results"]}
+
+    for covenant in ("arr_growth_floor", "net_burn_multiple_cap", "nrr_floor"):
+        assert sim[covenant]["computed_value"] == pytest.approx(real[covenant].computed_value, rel=1e-6), covenant
+        assert sim[covenant]["threshold"] == real[covenant].threshold
+        assert sim[covenant]["breached"] == real[covenant].breached
+
+    # minimum_liquidity_cash_runway can't reproduce the real historical cash
+    # figure exactly (a projection has no way to know the actual future cash
+    # trajectory), but it's still computed by the same cash_balance / gross_burn
+    # division inside monitor_covenants() — not a separately hardcoded number.
+    # Prove that directly against /simulate's own reported inputs:
+    runway = sim["minimum_liquidity_cash_runway"]
+    projected_row = next(row for row in payload["projected_financials"] if row["month"] == "2026-07")
+    assert runway["computed_value"] == pytest.approx(
+        projected_row["cash_balance_millions"] / projected_row["gross_burn_millions"], rel=1e-6
+    )
+    assert runway["threshold"] == real["minimum_liquidity_cash_runway"].threshold
+
+
+def test_simulate_defers_to_covenants_own_infinite_burn_multiple_rule():
+    """When projected quarterly net-new-ARR is zero or negative, monitor_covenants()
+    reports the burn multiple as Infinity (automatic breach) rather than dividing —
+    /simulate must hit that exact same branch, not invent its own handling."""
+    from creditpulse.api import build_simulate_payload
+
+    payload = build_simulate_payload({"months_forward": "1", "arr_growth_pct": "5", "burn_multiple": "1.6"})
+
+    burn_result = next(r for r in payload["results"] if r["covenant"] == "net_burn_multiple_cap")
+    assert burn_result["computed_value"] == "Infinity"
+    assert burn_result["breached"] is True
+    assert burn_result["threshold"] == 1.5
+
+
+def test_simulate_rejects_missing_required_overrides():
+    from creditpulse.api import build_simulate_payload
+
+    payload = build_simulate_payload({"arr_growth_pct": "5", "burn_multiple": "1.5"})  # months_forward missing
+    assert payload["error"] == "invalid_request"
+    assert "months_forward" in payload["message"]
+
+
+def test_simulate_default_start_month_is_latest_actual_month():
+    from creditpulse.api import build_simulate_payload
+
+    payload = build_simulate_payload({"months_forward": "1", "arr_growth_pct": "20", "burn_multiple": "1.0"})
+    assert payload["start_month"] == "2026-12"
