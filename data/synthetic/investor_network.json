@@ -19,6 +19,7 @@
     {"source": "priya_anand", "target": "lattice_metrics", "type": "co_founded"},
     {"source": "marcus_webb", "target": "ferrotech_systems", "type": "co_founded"},
     {"source": "dana_ilkay", "target": "concord_systems", "type": "previously_worked_at"},
+    {"source": "dana_ilkay", "target": "meridian", "type": "current_role", "role": "Chief Revenue Officer", "since": "2026-01"},
 
     {"source": "anchor_point_capital", "target": "meridian", "type": "invested_in", "round": "Seed"},
     {"source": "highline_ventures", "target": "meridian", "type": "invested_in", "round": "Series A"},
