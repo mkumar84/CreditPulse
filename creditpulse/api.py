@@ -560,6 +560,8 @@ def _serialize_concentration_flag(flag: ConcentrationFlag) -> dict[str, Any]:
         "investor_b": flag.investor_b,
         "shared_companies": list(flag.shared_companies),
         "message": flag.message,
+        "fully_sourced": flag.fully_sourced,
+        "unsourced_relationships": list(flag.unsourced_relationships),
     }
 
 

@@ -65,6 +65,8 @@ class ConcentrationFlag:
     investor_b: str
     shared_companies: tuple[str, ...]
     message: str
+    fully_sourced: bool
+    unsourced_relationships: tuple[str, ...]
 
 
 def load_investor_network(path: str | Path) -> dict[str, Any]:
@@ -122,27 +124,59 @@ def find_current_people_disconnected_from_company(
 
 
 def compute_concentration_flags(network: dict[str, Any]) -> list[ConcentrationFlag]:
-    """Flag investor pairs holding board seats at CONCENTRATION_THRESHOLD+ shared companies."""
+    """Flag investor pairs holding board seats at CONCENTRATION_THRESHOLD+ shared companies.
+
+    Each flag also reports its own evidentiary basis: fully_sourced is true
+    only if every board_seat edge behind the flag (both investors, at every
+    shared company) carries a real citation. This is computed every time,
+    not asserted once when the underlying data happens to be fully cited —
+    if an uncited board_seat edge is ever added later, the flag it produces
+    will say so explicitly (which specific relationships are unsourced)
+    rather than silently presenting a partially-inferred finding as a
+    single, fully-grounded one.
+    """
     names_by_id = {node["id"]: node["name"] for node in network["nodes"]}
     investor_ids = {node["id"] for node in network["nodes"] if node["type"] == "investor"}
 
-    board_companies_by_investor: dict[str, set[str]] = {investor_id: set() for investor_id in investor_ids}
+    board_edges_by_investor: dict[str, dict[str, dict[str, Any]]] = {investor_id: {} for investor_id in investor_ids}
     for edge in network["edges"]:
         if edge["type"] == "board_seat" and edge["source"] in investor_ids:
-            board_companies_by_investor[edge["source"]].add(edge["target"])
+            board_edges_by_investor[edge["source"]][edge["target"]] = edge
 
     flags: list[ConcentrationFlag] = []
     for investor_a, investor_b in combinations(sorted(investor_ids), 2):
-        shared = board_companies_by_investor[investor_a] & board_companies_by_investor[investor_b]
+        companies_a, companies_b = set(board_edges_by_investor[investor_a]), set(board_edges_by_investor[investor_b])
+        shared = companies_a & companies_b
         if len(shared) >= CONCENTRATION_THRESHOLD:
             shared_names = tuple(sorted(names_by_id[company_id] for company_id in shared))
             name_a, name_b = names_by_id[investor_a], names_by_id[investor_b]
+
+            unsourced: list[str] = []
+            for company_id in sorted(shared):
+                company_name = names_by_id[company_id]
+                if board_edges_by_investor[investor_a][company_id].get("citation") is None:
+                    unsourced.append(f"{name_a} board seat at {company_name}")
+                if board_edges_by_investor[investor_b][company_id].get("citation") is None:
+                    unsourced.append(f"{name_b} board seat at {company_name}")
+            fully_sourced = not unsourced
+
+            message = f"{name_a} and {name_b} share board seats across {len(shared_names)} portfolio companies: {', '.join(shared_names)}."
+            if not fully_sourced:
+                total_relationships = 2 * len(shared_names)
+                message += (
+                    f" {len(unsourced)} of {total_relationships} underlying board-seat relationships are not "
+                    f"independently sourced (no citation): {'; '.join(unsourced)}. Treat this finding as partially "
+                    "inferred, not fully grounded, until those relationships are sourced."
+                )
+
             flags.append(
                 ConcentrationFlag(
                     investor_a=name_a,
                     investor_b=name_b,
                     shared_companies=shared_names,
-                    message=f"{name_a} and {name_b} share board seats across {len(shared_names)} portfolio companies: {', '.join(shared_names)}.",
+                    message=message,
+                    fully_sourced=fully_sourced,
+                    unsourced_relationships=tuple(unsourced),
                 )
             )
     return flags

@@ -1931,24 +1931,33 @@
           "target": "lattice_metrics",
           "type": "invested_in",
           "round": "Series A",
-          "citation": null,
-          "has_citation": false
+          "citation": {
+            "document": "portfolio_company_records.md",
+            "line": 6
+          },
+          "has_citation": true
         },
         {
           "source": "highline_ventures",
           "target": "northbeam_robotics",
           "type": "invested_in",
           "round": "Seed",
-          "citation": null,
-          "has_citation": false
+          "citation": {
+            "document": "portfolio_company_records.md",
+            "line": 9
+          },
+          "has_citation": true
         },
         {
           "source": "anchor_point_capital",
           "target": "northbeam_robotics",
           "type": "invested_in",
           "round": "Series A",
-          "citation": null,
-          "has_citation": false
+          "citation": {
+            "document": "portfolio_company_records.md",
+            "line": 12
+          },
+          "has_citation": true
         },
         {
           "source": "priya_anand",
@@ -1994,15 +2003,21 @@
           "source": "highline_ventures",
           "target": "northbeam_robotics",
           "type": "board_seat",
-          "citation": null,
-          "has_citation": false
+          "citation": {
+            "document": "portfolio_company_records.md",
+            "line": 9
+          },
+          "has_citation": true
         },
         {
           "source": "anchor_point_capital",
           "target": "northbeam_robotics",
           "type": "board_seat",
-          "citation": null,
-          "has_citation": false
+          "citation": {
+            "document": "portfolio_company_records.md",
+            "line": 12
+          },
+          "has_citation": true
         }
       ],
       "edge_type_legend": [
@@ -2045,7 +2060,9 @@
             "Meridian SaaS Co.",
             "Northbeam Robotics"
           ],
-          "message": "Anchor Point Capital and Highline Ventures share board seats across 2 portfolio companies: Meridian SaaS Co., Northbeam Robotics."
+          "message": "Anchor Point Capital and Highline Ventures share board seats across 2 portfolio companies: Meridian SaaS Co., Northbeam Robotics.",
+          "fully_sourced": true,
+          "unsourced_relationships": []
         }
       ]
     },
