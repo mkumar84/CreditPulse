@@ -1857,6 +1857,13 @@
           "type": "previously_worked_at"
         },
         {
+          "source": "dana_ilkay",
+          "target": "meridian",
+          "type": "current_role",
+          "role": "Chief Revenue Officer",
+          "since": "2026-01"
+        },
+        {
           "source": "anchor_point_capital",
           "target": "meridian",
           "type": "invested_in",
@@ -1921,6 +1928,38 @@
           "source": "anchor_point_capital",
           "target": "northbeam_robotics",
           "type": "board_seat"
+        }
+      ],
+      "edge_type_legend": [
+        {
+          "type": "co_founded",
+          "label": "Co-founded",
+          "color": "#7C3AED",
+          "line_style": "solid"
+        },
+        {
+          "type": "current_role",
+          "label": "Current role",
+          "color": "#F59E0B",
+          "line_style": "solid"
+        },
+        {
+          "type": "board_seat",
+          "label": "Board seat",
+          "color": "#2563EB",
+          "line_style": "solid"
+        },
+        {
+          "type": "invested_in",
+          "label": "Invested in",
+          "color": "#059669",
+          "line_style": "solid"
+        },
+        {
+          "type": "previously_worked_at",
+          "label": "Previously worked at",
+          "color": "#6B7280",
+          "line_style": "dashed"
         }
       ],
       "concentration_flags": [

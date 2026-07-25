@@ -24,7 +24,7 @@ from creditpulse.covenants import CovenantResult, MonthlyFinancial, load_financi
 from creditpulse.evals import covenant_precision_recall, extraction_accuracy, load_prompt_model_regression, memo_hallucination_rate
 from creditpulse.extraction import extract_from_sources, flatten_extraction_table
 from creditpulse.founder_extraction import CapTable, FounderProfile, PriorVenture, extract_cap_table, extract_founder_profiles
-from creditpulse.investor_network import ConcentrationFlag, compute_concentration_flags, load_investor_network
+from creditpulse.investor_network import EDGE_TYPE_LEGEND, ConcentrationFlag, compute_concentration_flags, load_investor_network
 from creditpulse.memo_drafter import MEMO_SECTIONS, draft_memo_claims
 from creditpulse.policy import MemoClaim, final_memo_allowed, render_claim
 from creditpulse.simulate import describe_result_metadata, simulate_covenants
@@ -191,6 +191,7 @@ def build_sponsor_network_payload() -> dict[str, Any]:
     return {
         "nodes": network["nodes"],
         "edges": network["edges"],
+        "edge_type_legend": [{"type": edge_type, **style} for edge_type, style in EDGE_TYPE_LEGEND.items()],
         "concentration_flags": [_serialize_concentration_flag(flag) for flag in flags],
     }
 

@@ -884,7 +884,72 @@ def test_investor_network_loads_as_structured_passthrough():
     assert "meridian" in node_ids
     assert "priya_anand" in node_ids
     edge_types = {edge["type"] for edge in network["edges"]}
-    assert edge_types == {"invested_in", "board_seat", "co_founded", "previously_worked_at"}
+    assert edge_types == {"invested_in", "board_seat", "co_founded", "previously_worked_at", "current_role"}
+
+
+def test_current_role_edge_connects_dana_ilkay_to_meridian():
+    """Dana Ilkay (CRO, no co-founder/board/investor status) previously had zero edges to
+    Meridian -- a current executive appearing as a disconnected node. current_role fixes
+    this specifically for her, based on the role and start date already in founder_bios.md."""
+    from creditpulse.investor_network import load_investor_network
+
+    network = load_investor_network("data/synthetic/investor_network.json")
+    dana_to_meridian = [
+        edge for edge in network["edges"] if {edge["source"], edge["target"]} == {"dana_ilkay", "meridian"}
+    ]
+    assert len(dana_to_meridian) == 1
+    assert dana_to_meridian[0]["type"] == "current_role"
+    assert dana_to_meridian[0]["role"] == "Chief Revenue Officer"
+
+
+def test_edge_type_legend_covers_all_five_types_with_distinct_styling():
+    """The legend the frontend renders must cover every edge type actually present in the
+    data, and current_role must be visually distinct from every other type -- not
+    reusing another type's color, which would defeat the point of adding it."""
+    from creditpulse.investor_network import EDGE_TYPE_LEGEND, load_investor_network
+
+    network = load_investor_network("data/synthetic/investor_network.json")
+    edge_types_in_data = {edge["type"] for edge in network["edges"]}
+    assert edge_types_in_data <= set(EDGE_TYPE_LEGEND)  # every type used in the data is legended
+
+    colors = [style["color"] for style in EDGE_TYPE_LEGEND.values()]
+    assert len(colors) == len(set(colors))  # every edge type gets its own distinct color
+
+    from creditpulse.api import build_sponsor_network_payload
+
+    payload = build_sponsor_network_payload()
+    legend_types = {row["type"] for row in payload["edge_type_legend"]}
+    assert legend_types == set(EDGE_TYPE_LEGEND)
+
+
+def test_no_current_person_at_meridian_is_disconnected_from_it_in_the_network():
+    """General check, not just a Dana-specific regression test: every person founder_bios.md
+    describes as CURRENTLY at Meridian (an independent source from the graph itself) must
+    have at least one edge to the meridian node, of any type -- co_founded, current_role, or
+    otherwise. This is the check the sponsor module should re-run if more people are added
+    later, so the same category of gap (present employment, no disclosed equity/board status)
+    can't quietly recur."""
+    from creditpulse.founder_extraction import extract_founder_profiles
+    from creditpulse.investor_network import find_current_people_disconnected_from_company, load_investor_network
+
+    profiles = extract_founder_profiles("data/synthetic/founder_bios.md")
+    current_people_by_company = {"Meridian SaaS Co.": {profile.name for profile in profiles}}
+    network = load_investor_network("data/synthetic/investor_network.json")
+
+    gaps = find_current_people_disconnected_from_company(network, current_people_by_company)
+    assert gaps == []
+
+
+def test_find_current_people_disconnected_actually_detects_a_real_gap():
+    """Proves the checker function itself is not a no-op: feeding it a person with no edge
+    to the company must report the gap, not silently pass."""
+    from creditpulse.investor_network import find_current_people_disconnected_from_company, load_investor_network
+
+    network = load_investor_network("data/synthetic/investor_network.json")
+    gaps = find_current_people_disconnected_from_company(
+        network, {"Meridian SaaS Co.": {"Priya Anand", "Someone Not In The Graph"}}
+    )
+    assert gaps == ["Someone Not In The Graph @ Meridian SaaS Co. (person node missing)"]
 
 
 def test_concentration_flag_detects_shared_board_seats_via_graph_traversal():
