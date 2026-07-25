@@ -22,6 +22,19 @@ real disclosed data behind them — never a judgment call:
   - both disclosed  -> "medium confidence"
   - exactly one      -> "low confidence"
   - neither           -> insufficient data, no range returned at all
+
+The uncertainty band around the point estimate is tied to that same count,
+not an independent flat number: it scales as BASE_RANGE_BAND_PCT x
+(TOTAL_WEALTH_COMPONENTS / disclosed_component_count). At full disclosure
+(2/2) that's the base 25%; at partial disclosure (1/2) it doubles to 50%.
+This intentionally does NOT try to price in "wealth we don't know about at
+all" (undisclosed assets, other ventures) — that's genuinely unknowable and
+guessing a number for it would fabricate a precision this module doesn't
+have. What it DOES do is keep the displayed range and the confidence label
+consistent with each other: a "low confidence" estimate is backed by half
+as much disclosed input as a "medium confidence" one, so its band is
+proportionally wider, not the same width dressed up with a lower-confidence
+sticker next to it.
 """
 
 from __future__ import annotations
@@ -31,11 +44,18 @@ from typing import Any
 
 from creditpulse.founder_extraction import CapTable, FounderProfile
 
-# Fixed, disclosed-upfront uncertainty band applied around the point estimate.
-# Not tuned per founder — a single documented modeling assumption, since
-# disclosed equity percentages and implied valuations are themselves
-# approximations, not verified/audited figures. See methodology note below.
-RANGE_BAND_PCT = 0.25
+# Base uncertainty band, applied when both possible components are
+# disclosed (full information). Not tuned per founder — a single
+# documented modeling assumption, since disclosed equity percentages and
+# implied valuations are themselves approximations, not verified/audited
+# figures. The actual band used narrows/widens from here based on how many
+# of TOTAL_WEALTH_COMPONENTS are actually disclosed — see module docstring.
+BASE_RANGE_BAND_PCT = 0.25
+
+# Prior-exit proceeds and current cap table stake — the only two inputs
+# this estimator ever considers. Used to scale the band by how much of
+# that total is actually backed by disclosed data.
+TOTAL_WEALTH_COMPONENTS = 2
 
 NOT_AVAILABLE_METHODOLOGY = (
     "No disclosed prior-exit proceeds and no finalized cap table stake exist "
@@ -53,6 +73,7 @@ class WealthEstimate:
     range_high_millions: float | None
     point_estimate_millions: float | None
     confidence: str | None  # "medium" | "low" | None (when insufficient_data)
+    range_band_pct: float | None  # the actual +/- band applied; None when insufficient_data
     methodology_note: str
     prior_exit_component_millions: float
     current_stake_component_millions: float
@@ -93,6 +114,7 @@ def estimate_wealth(profile: FounderProfile, cap_table: CapTable) -> WealthEstim
             range_high_millions=None,
             point_estimate_millions=None,
             confidence=None,
+            range_band_pct=None,
             methodology_note=NOT_AVAILABLE_METHODOLOGY,
             prior_exit_component_millions=0.0,
             current_stake_component_millions=0.0,
@@ -101,8 +123,9 @@ def estimate_wealth(profile: FounderProfile, cap_table: CapTable) -> WealthEstim
         )
 
     point_estimate = prior_exit_component + current_stake_component
-    range_low = round(point_estimate * (1 - RANGE_BAND_PCT), 1)
-    range_high = round(point_estimate * (1 + RANGE_BAND_PCT), 1)
+    range_band_pct = BASE_RANGE_BAND_PCT * (TOTAL_WEALTH_COMPONENTS / disclosed_component_count)
+    range_low = round(point_estimate * (1 - range_band_pct), 1)
+    range_high = round(point_estimate * (1 + range_band_pct), 1)
     confidence = "medium" if disclosed_component_count == 2 else "low"
 
     included_parts = []
@@ -110,9 +133,14 @@ def estimate_wealth(profile: FounderProfile, cap_table: CapTable) -> WealthEstim
         included_parts.append(f"disclosed prior-exit proceeds (${prior_exit_component:.1f}M, from disclosed exit value x disclosed founder equity % at exit)")
     if current_stake_disclosed:
         included_parts.append(f"current Meridian cap table stake at the latest disclosed implied valuation (${current_stake_component:.1f}M)")
+    band_note = (
+        f"a +/-{int(BASE_RANGE_BAND_PCT * 100)}% band"
+        if disclosed_component_count == TOTAL_WEALTH_COMPONENTS
+        else f"a +/-{int(round(range_band_pct * 100))}% band (widened from the {int(BASE_RANGE_BAND_PCT * 100)}% base band since only {disclosed_component_count} of {TOTAL_WEALTH_COMPONENTS} possible components are disclosed — {confidence} confidence)"
+    )
     methodology_note = (
         f"Estimated from {' and '.join(included_parts)}. "
-        f"Range reflects a fixed +/-{int(RANGE_BAND_PCT * 100)}% band around the ${point_estimate:.1f}M point estimate, "
+        f"Range reflects {band_note} around the ${point_estimate:.1f}M point estimate, "
         "to account for disclosed figures being approximations, not verified or audited net worth. "
         "This is not a verified net worth figure."
     )
@@ -124,6 +152,7 @@ def estimate_wealth(profile: FounderProfile, cap_table: CapTable) -> WealthEstim
         range_high_millions=range_high,
         point_estimate_millions=round(point_estimate, 1),
         confidence=confidence,
+        range_band_pct=range_band_pct,
         methodology_note=methodology_note,
         prior_exit_component_millions=round(prior_exit_component, 1),
         current_stake_component_millions=round(current_stake_component, 1),
