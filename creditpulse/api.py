@@ -18,23 +18,33 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
+from creditpulse.adverse_media import ClassifiedAdverseMediaRecord, classify_records, extract_adverse_media_records
 from creditpulse.ask import answer_question
 from creditpulse.covenants import CovenantResult, MonthlyFinancial, load_financials, monitor_covenants
 from creditpulse.evals import covenant_precision_recall, extraction_accuracy, load_prompt_model_regression, memo_hallucination_rate
 from creditpulse.extraction import extract_from_sources, flatten_extraction_table
+from creditpulse.founder_extraction import CapTable, FounderProfile, PriorVenture, extract_cap_table, extract_founder_profiles
+from creditpulse.investor_network import ConcentrationFlag, compute_concentration_flags, load_investor_network
 from creditpulse.memo_drafter import MEMO_SECTIONS, draft_memo_claims
 from creditpulse.policy import MemoClaim, final_memo_allowed, render_claim
 from creditpulse.simulate import describe_result_metadata, simulate_covenants
+from creditpulse.wealth_estimator import WealthEstimate, estimate_wealth
 
 ROOT = Path(__file__).resolve().parent.parent
 FINANCIALS = ROOT / "data" / "synthetic" / "monthly_financials.csv"
 LOAN_AGREEMENT = ROOT / "data" / "synthetic" / "loan_agreement.md"
 EXTRACTION_TABLE = ROOT / "data" / "synthetic" / "extraction_table.json"
+FOUNDER_BIOS = ROOT / "data" / "synthetic" / "founder_bios.md"
+CAP_TABLE = ROOT / "data" / "synthetic" / "cap_table.md"
+INVESTOR_NETWORK = ROOT / "data" / "synthetic" / "investor_network.json"
+ADVERSE_MEDIA_RECORDS = ROOT / "data" / "synthetic" / "adverse_media_records.md"
 ANOMALIES = ROOT / "data" / "ground_truth" / "anomalies.json"
 EVAL_REGRESSION = ROOT / "data" / "ground_truth" / "eval_regression.json"
 EXTRACTION_ANSWER_KEY = ROOT / "data" / "ground_truth" / "extraction_answer_key.json"
 FIELD_ACCURACY_ANSWER_KEY = ROOT / "data" / "ground_truth" / "field_accuracy_answer_key.json"
 MONTHLY_METRICS_ANSWER_KEY = ROOT / "data" / "ground_truth" / "monthly_metrics_answer_key.json"
+WEALTH_GROUND_TRUTH = ROOT / "data" / "ground_truth" / "wealth_estimate_answer_key.json"
+ADVERSE_MEDIA_GROUND_TRUTH = ROOT / "data" / "ground_truth" / "adverse_media_answer_key.json"
 DEFAULT_ALLOWED_ORIGIN = "https://creditpulse.live"
 LIVE_MEMO_MODEL_LABEL = "Claude API (memo drafter)"
 FALLBACK_MEMO_MODEL_LABEL = "Claude API (memo drafter) — deterministic fallback, no live key"
@@ -151,9 +161,53 @@ def build_evals_payload() -> dict[str, Any]:
             "memo_hallucination_rate": memo_hallucination_rate(FALLBACK_MEMO_CLAIMS, fields),
         },
         "breach_counts": breach_counts,
-        "field_accuracy": _field_accuracy_rows(covenant_results),
+        "field_accuracy": _field_accuracy_rows(covenant_results) + [_scored_wealth_estimates(), _scored_adverse_media_classification()],
         "missing_ground_truth": [],
         "regression": load_prompt_model_regression(EVAL_REGRESSION),
+    }
+
+
+def build_sponsor_profile_payload() -> dict[str, Any]:
+    """Return cited founder/executive cards plus each founder's wealth signal.
+
+    Extraction (founder_extraction.py) is purely deterministic and cited.
+    The wealth signal (wealth_estimator.py) is pure arithmetic on disclosed
+    figures — no LLM is involved in producing any number here.
+    """
+    profiles = extract_founder_profiles(FOUNDER_BIOS)
+    cap_table = extract_cap_table(CAP_TABLE)
+    return {"founders": [_serialize_founder_card(profile, cap_table) for profile in profiles]}
+
+
+def build_sponsor_network_payload() -> dict[str, Any]:
+    """Return the investor/board network graph plus a deterministic concentration-risk flag.
+
+    Nodes/edges are served as-is (structured passthrough, no LLM). The
+    concentration flag comes from a plain graph traversal (set intersection
+    over board_seat edges), not a judgment call.
+    """
+    network = load_investor_network(INVESTOR_NETWORK)
+    flags = compute_concentration_flags(network)
+    return {
+        "nodes": network["nodes"],
+        "edges": network["edges"],
+        "concentration_flags": [_serialize_concentration_flag(flag) for flag in flags],
+    }
+
+
+def build_adverse_media_payload() -> dict[str, Any]:
+    """Return cited adverse media/legal records with their classification.
+
+    Classification is LLM-assisted (live call when ANTHROPIC_API_KEY is set,
+    else a deterministic keyword fallback) but every result passes through a
+    structural safety gate afterward — an ongoing/unresolved record is never
+    auto-classified as clean, regardless of what the LLM or fallback proposed.
+    """
+    records = extract_adverse_media_records(ADVERSE_MEDIA_RECORDS)
+    classified = classify_records(records)
+    return {
+        "records": [_serialize_classified_record(item) for item in classified],
+        "human_review_required_count": sum(1 for item in classified if item.human_review),
     }
 
 
@@ -164,6 +218,11 @@ def build_contract_payload() -> dict[str, Any]:
         "covenants": build_covenant_payload(),
         "memo": build_memo_payload(),
         "evals": build_evals_payload(),
+        "sponsor": {
+            "profile": build_sponsor_profile_payload(),
+            "network": build_sponsor_network_payload(),
+            "adverse_media": build_adverse_media_payload(),
+        },
     }
 
 
@@ -234,6 +293,9 @@ class CreditPulseHandler(BaseHTTPRequestHandler):
         "/memo": build_memo_payload,
         "/evals": build_evals_payload,
         "/contract": build_contract_payload,
+        "/sponsor-profile": build_sponsor_profile_payload,
+        "/sponsor-network": build_sponsor_network_payload,
+        "/adverse-media": build_adverse_media_payload,
     }
 
     def do_GET(self) -> None:
@@ -382,6 +444,54 @@ def _burn_multiple_matches(actual: float, expected: float | None) -> bool:
     return abs(actual - expected) < BURN_MULTIPLE_TOLERANCE
 
 
+# Accommodates the estimator's own 1-decimal rounding, nothing more —
+# a real arithmetic bug shifts these numbers by far more than this.
+WEALTH_ESTIMATE_TOLERANCE = 0.05
+
+
+def _scored_wealth_estimates() -> dict[str, Any]:
+    """Score wealth_estimator.estimate_wealth() against a hand-computed answer key.
+
+    data/ground_truth/wealth_estimate_answer_key.json was computed by hand
+    from the same raw disclosed source figures using a plain script — not by
+    importing or running creditpulse.wealth_estimator — so this can catch a
+    real arithmetic bug rather than just restate the module's own output.
+    """
+    profiles = extract_founder_profiles(FOUNDER_BIOS)
+    cap_table = extract_cap_table(CAP_TABLE)
+    truth = json.loads(WEALTH_GROUND_TRUTH.read_text())["founders"]
+    matches = sum(1 for profile in profiles if profile.name in truth and _wealth_estimate_matches(estimate_wealth(profile, cap_table), truth[profile.name]))
+    return {"field_name": "Founder Wealth Signal", "accuracy": matches / len(truth) if truth else 1.0, "n": len(truth)}
+
+
+def _wealth_estimate_matches(actual: WealthEstimate, expected: dict[str, Any]) -> bool:
+    if expected["insufficient_data"]:
+        return actual.insufficient_data
+    if actual.insufficient_data:
+        return False
+    return (
+        abs(actual.range_low_millions - expected["expected_range_low_millions"]) < WEALTH_ESTIMATE_TOLERANCE
+        and abs(actual.range_high_millions - expected["expected_range_high_millions"]) < WEALTH_ESTIMATE_TOLERANCE
+        and actual.confidence == expected["expected_confidence"]
+    )
+
+
+def _scored_adverse_media_classification() -> dict[str, Any]:
+    """Score adverse_media.classify_records() against an independently-authored answer key.
+
+    data/ground_truth/adverse_media_answer_key.json is this reviewer's own
+    read of each synthetic record's text, written from the source document
+    directly — not derived from running classify_records() or copying its
+    output — per CreditPulse_Sponsor_Diligence_PRD.md's explicit instruction
+    not to repeat the MAC-style tautology mistake.
+    """
+    records = extract_adverse_media_records(ADVERSE_MEDIA_RECORDS)
+    classified_by_id = {str(item.record.record_id): item for item in classify_records(records)}
+    truth = json.loads(ADVERSE_MEDIA_GROUND_TRUTH.read_text())["records"]
+    matches = sum(1 for record_id, expected in truth.items() if record_id in classified_by_id and classified_by_id[record_id].classification == expected["expected_classification"])
+    return {"field_name": "Adverse Media Classification", "accuracy": matches / len(truth) if truth else 1.0, "n": len(truth)}
+
+
 def _serialize_covenant_result(result: CovenantResult) -> dict[str, Any]:
     value = result.computed_value
     return {
@@ -396,6 +506,72 @@ def _serialize_covenant_result(result: CovenantResult) -> dict[str, Any]:
         "cash_balance_millions": result.cash_balance_millions,
         "cash_floor_threshold": result.cash_floor_threshold,
         "breach_reason": result.breach_reason,
+    }
+
+
+def _serialize_founder_card(profile: FounderProfile, cap_table: CapTable) -> dict[str, Any]:
+    wealth = estimate_wealth(profile, cap_table)
+    return {
+        "name": profile.name,
+        "title_kind": profile.title_kind,
+        "role": {"value": profile.role, "citation": profile.citation},
+        "education": {"value": profile.education, "citation": profile.citation},
+        "bio": {"value": profile.bio, "citation": profile.citation},
+        "prior_ventures": [_serialize_prior_venture(venture) for venture in profile.prior_ventures],
+        "wealth_signal": _serialize_wealth_estimate(wealth),
+    }
+
+
+def _serialize_prior_venture(venture: PriorVenture) -> dict[str, Any]:
+    return {
+        "company": venture.company,
+        "outcome": venture.outcome,
+        "exit_value_millions": venture.exit_value_millions,
+        "founder_equity_pct_at_exit": venture.founder_equity_pct_at_exit,
+        "shut_down_no_proceeds": venture.shut_down_no_proceeds,
+        "citation": venture.citation,
+    }
+
+
+def _serialize_wealth_estimate(estimate: WealthEstimate) -> dict[str, Any]:
+    return {
+        "insufficient_data": estimate.insufficient_data,
+        "range_low_millions": estimate.range_low_millions,
+        "range_high_millions": estimate.range_high_millions,
+        "point_estimate_millions": estimate.point_estimate_millions,
+        "confidence": estimate.confidence,
+        "methodology_note": estimate.methodology_note,
+        "prior_exit_component_millions": estimate.prior_exit_component_millions,
+        "current_stake_component_millions": estimate.current_stake_component_millions,
+        "disclosed_component_count": estimate.disclosed_component_count,
+        "sources": list(estimate.sources),
+    }
+
+
+def _serialize_concentration_flag(flag: ConcentrationFlag) -> dict[str, Any]:
+    return {
+        "investor_a": flag.investor_a,
+        "investor_b": flag.investor_b,
+        "shared_companies": list(flag.shared_companies),
+        "message": flag.message,
+    }
+
+
+def _serialize_classified_record(item: ClassifiedAdverseMediaRecord) -> dict[str, Any]:
+    record = item.record
+    return {
+        "record_id": record.record_id,
+        "title": record.title,
+        "subject": record.subject,
+        "filed_year": record.filed_year,
+        "status_text": record.status_text,
+        "summary": record.summary,
+        "citation": record.citation,
+        "classification": item.classification,
+        "human_review": item.human_review,
+        "classification_source": item.classification_source,
+        "safety_gate_overrode": item.safety_gate_overrode,
+        "rationale": item.rationale,
     }
 
 

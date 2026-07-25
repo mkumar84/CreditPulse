@@ -85,7 +85,7 @@ def test_api_contract_payload_exposes_frontend_sections():
     from creditpulse.api import FALLBACK_MEMO_MODEL_LABEL, build_contract_payload
 
     payload = build_contract_payload()
-    assert set(payload) == {"extraction", "covenants", "memo", "evals"}
+    assert set(payload) == {"extraction", "covenants", "memo", "evals", "sponsor"}
     assert payload["extraction"]["borrower"]["value"] == "Meridian SaaS Co."
     assert payload["covenants"]["breach_months"] == ["2026-07"]
     assert payload["memo"]["model_label"] == FALLBACK_MEMO_MODEL_LABEL
@@ -733,3 +733,264 @@ def test_simulate_default_start_month_is_latest_actual_month():
 
     payload = build_simulate_payload({"months_forward": "1", "arr_growth_pct": "20", "burn_multiple": "1.0"})
     assert payload["start_month"] == "2026-12"
+
+
+# ---------------------------------------------------------------------------
+# Sponsor & Founder Diligence module (CreditPulse_Sponsor_Diligence_PRD.md)
+# ---------------------------------------------------------------------------
+
+
+def test_founder_extraction_cites_every_field_to_founder_bios():
+    from creditpulse.founder_extraction import extract_founder_profiles
+
+    profiles = extract_founder_profiles("data/synthetic/founder_bios.md")
+    assert {profile.name for profile in profiles} == {"Priya Anand", "Marcus Webb", "Dana Ilkay"}
+
+    priya = next(profile for profile in profiles if profile.name == "Priya Anand")
+    assert priya.title_kind == "Founder"
+    assert priya.role == "Co-Founder & Chief Executive Officer"
+    assert priya.citation == {"document": "founder_bios.md", "line": 7}
+    assert len(priya.prior_ventures) == 1
+    venture = priya.prior_ventures[0]
+    assert venture.company == "Lattice Metrics"
+    assert venture.exit_value_millions == 180.0
+    assert venture.founder_equity_pct_at_exit == 11.0
+    assert venture.citation["document"] == "founder_bios.md"
+
+    dana = next(profile for profile in profiles if profile.name == "Dana Ilkay")
+    assert dana.title_kind == "Executive"
+    assert dana.prior_ventures == ()  # explicitly no prior ventures, not a parsing gap
+
+
+def test_founder_extraction_flags_shutdown_with_no_proceeds_distinctly_from_undisclosed():
+    from creditpulse.founder_extraction import extract_founder_profiles
+
+    profiles = extract_founder_profiles("data/synthetic/founder_bios.md")
+    marcus = next(profile for profile in profiles if profile.name == "Marcus Webb")
+    venture = marcus.prior_ventures[0]
+    assert venture.company == "Ferrotech Systems"
+    assert venture.shut_down_no_proceeds is True
+    assert venture.exit_value_millions is None
+    assert venture.founder_equity_pct_at_exit is None
+
+
+def test_cap_table_extraction_parses_ownership_valuation_and_board():
+    from creditpulse.founder_extraction import extract_cap_table
+
+    cap_table = extract_cap_table("data/synthetic/cap_table.md")
+    assert cap_table.latest_implied_valuation_millions == 220.0
+    assert cap_table.board_seats == ("Priya Anand", "Anchor Point Capital", "Highline Ventures", "Grayridge Partners")
+
+    priya_entry = cap_table.entry_for("Priya Anand")
+    assert priya_entry is not None
+    assert priya_entry.fully_diluted_pct == 18.0
+    assert priya_entry.pending_ratification is False
+
+    dana_entry = cap_table.entry_for("Dana Ilkay")
+    assert dana_entry is not None
+    assert dana_entry.fully_diluted_pct is None
+    assert dana_entry.pending_ratification is True  # not part of the finalized cap table yet
+
+
+def test_wealth_estimator_computes_full_range_when_both_components_disclosed():
+    """Priya Anand: disclosed prior exit AND a finalized cap table stake -> medium confidence range."""
+    from creditpulse.founder_extraction import extract_cap_table, extract_founder_profiles
+    from creditpulse.wealth_estimator import estimate_wealth
+
+    profiles = extract_founder_profiles("data/synthetic/founder_bios.md")
+    cap_table = extract_cap_table("data/synthetic/cap_table.md")
+    priya = next(profile for profile in profiles if profile.name == "Priya Anand")
+
+    estimate = estimate_wealth(priya, cap_table)
+    assert estimate.insufficient_data is False
+    assert estimate.prior_exit_component_millions == pytest.approx(19.8)
+    assert estimate.current_stake_component_millions == pytest.approx(39.6)
+    assert estimate.point_estimate_millions == pytest.approx(59.4)
+    assert estimate.range_low_millions == pytest.approx(44.6)
+    assert estimate.range_high_millions == pytest.approx(74.2)
+    assert estimate.confidence == "medium"
+    assert "not a verified net worth figure" in estimate.methodology_note
+    assert len(estimate.sources) == 3  # prior venture + cap table stake + valuation, each cited
+
+
+def test_wealth_estimator_low_confidence_when_only_current_stake_disclosed():
+    """Marcus Webb: prior venture shut down with no proceeds (a disclosed $0, not missing data),
+    so only the current cap table stake counts as real disclosed wealth data -> low confidence."""
+    from creditpulse.founder_extraction import extract_cap_table, extract_founder_profiles
+    from creditpulse.wealth_estimator import estimate_wealth
+
+    profiles = extract_founder_profiles("data/synthetic/founder_bios.md")
+    cap_table = extract_cap_table("data/synthetic/cap_table.md")
+    marcus = next(profile for profile in profiles if profile.name == "Marcus Webb")
+
+    estimate = estimate_wealth(marcus, cap_table)
+    assert estimate.insufficient_data is False
+    assert estimate.prior_exit_component_millions == 0.0
+    assert estimate.current_stake_component_millions == pytest.approx(26.4)
+    assert estimate.range_low_millions == pytest.approx(19.8)
+    assert estimate.range_high_millions == pytest.approx(33.0)
+    assert estimate.confidence == "low"
+    assert estimate.disclosed_component_count == 1
+
+
+def test_wealth_estimator_reports_insufficient_data_explicitly_never_guesses():
+    """Dana Ilkay: no prior ventures, and her cap table stake is pending ratification (not
+    finalized) -> the estimator must say so explicitly rather than estimate anyway."""
+    from creditpulse.founder_extraction import extract_cap_table, extract_founder_profiles
+    from creditpulse.wealth_estimator import estimate_wealth
+
+    profiles = extract_founder_profiles("data/synthetic/founder_bios.md")
+    cap_table = extract_cap_table("data/synthetic/cap_table.md")
+    dana = next(profile for profile in profiles if profile.name == "Dana Ilkay")
+
+    estimate = estimate_wealth(dana, cap_table)
+    assert estimate.insufficient_data is True
+    assert estimate.range_low_millions is None
+    assert estimate.range_high_millions is None
+    assert estimate.confidence is None
+    assert "insufficient disclosed data" in estimate.methodology_note.lower()
+
+
+def test_investor_network_loads_as_structured_passthrough():
+    from creditpulse.investor_network import load_investor_network
+
+    network = load_investor_network("data/synthetic/investor_network.json")
+    node_ids = {node["id"] for node in network["nodes"]}
+    assert "meridian" in node_ids
+    assert "priya_anand" in node_ids
+    edge_types = {edge["type"] for edge in network["edges"]}
+    assert edge_types == {"invested_in", "board_seat", "co_founded", "previously_worked_at"}
+
+
+def test_concentration_flag_detects_shared_board_seats_via_graph_traversal():
+    """Highline Ventures and Anchor Point Capital both hold board seats at Meridian SaaS Co.
+    AND Northbeam Robotics in the synthetic data -- a real, deterministic overlap the flag
+    must surface via set intersection over board_seat edges, not an LLM judgment call."""
+    from creditpulse.investor_network import compute_concentration_flags, load_investor_network
+
+    network = load_investor_network("data/synthetic/investor_network.json")
+    flags = compute_concentration_flags(network)
+    assert len(flags) == 1
+    flag = flags[0]
+    assert {flag.investor_a, flag.investor_b} == {"Highline Ventures", "Anchor Point Capital"}
+    assert set(flag.shared_companies) == {"Meridian SaaS Co.", "Northbeam Robotics"}
+
+    # Grayridge Partners only holds one board seat (Meridian) -- must not be flagged.
+    flagged_investors = {flag.investor_a for flag in flags} | {flag.investor_b for flag in flags}
+    assert "Grayridge Partners" not in flagged_investors
+
+
+def test_adverse_media_extraction_cites_every_record():
+    from creditpulse.adverse_media import extract_adverse_media_records
+
+    records = extract_adverse_media_records("data/synthetic/adverse_media_records.md")
+    assert [record.record_id for record in records] == [1, 2, 3]
+    for record in records:
+        assert record.citation["document"] == "adverse_media_records.md"
+        assert record.citation["line"] > 0
+
+
+def test_adverse_media_resolved_records_classify_as_resolved_immaterial():
+    from creditpulse.adverse_media import RESOLVED_IMMATERIAL, classify_records, extract_adverse_media_records
+
+    records = extract_adverse_media_records("data/synthetic/adverse_media_records.md")
+    classified = {item.record.record_id: item for item in classify_records(records)}
+
+    for record_id in (1, 2):  # Ferrotech FTC inquiry, Lattice Metrics contract dispute
+        assert classified[record_id].classification == RESOLVED_IMMATERIAL
+        assert classified[record_id].human_review is False
+
+
+def test_adverse_media_ambiguous_record_is_never_auto_classified_clean():
+    """The genuinely ambiguous record (ongoing state AG inquiry, no findings issued, no
+    resolution timeline) must classify as ongoing_ambiguous with human_review required --
+    this is the exact behavior CreditPulse_Sponsor_Diligence_PRD.md requires a test for."""
+    from creditpulse.adverse_media import ONGOING_AMBIGUOUS, classify_records, extract_adverse_media_records
+
+    records = extract_adverse_media_records("data/synthetic/adverse_media_records.md")
+    classified = {item.record.record_id: item for item in classify_records(records)}
+
+    ambiguous = classified[3]
+    assert ambiguous.classification == ONGOING_AMBIGUOUS
+    assert ambiguous.human_review is True
+
+
+def test_adverse_media_safety_gate_overrides_a_wrong_clean_classification():
+    """Structural proof, not just an end-to-end result: even if an LLM (or a broken fallback)
+    proposed RESOLVED_IMMATERIAL for the genuinely ambiguous record, the safety gate must
+    force it back to ONGOING_AMBIGUOUS on its own -- the guarantee is enforced in code
+    against the record's own text, not left to prompting alone."""
+    from creditpulse.adverse_media import ONGOING_AMBIGUOUS, RESOLVED_IMMATERIAL, apply_safety_gate, extract_adverse_media_records
+
+    records = extract_adverse_media_records("data/synthetic/adverse_media_records.md")
+    ambiguous_record = next(record for record in records if record.record_id == 3)
+
+    forced_classification, overrode = apply_safety_gate(ambiguous_record, RESOLVED_IMMATERIAL)
+    assert forced_classification == ONGOING_AMBIGUOUS
+    assert overrode is True
+
+    # A record with no unresolved language must NOT be overridden.
+    resolved_record = next(record for record in records if record.record_id == 1)
+    unchanged_classification, unchanged_overrode = apply_safety_gate(resolved_record, RESOLVED_IMMATERIAL)
+    assert unchanged_classification == RESOLVED_IMMATERIAL
+    assert unchanged_overrode is False
+
+
+def test_sponsor_profile_payload_includes_founder_cards_and_wealth_signal():
+    from creditpulse.api import build_sponsor_profile_payload
+
+    payload = build_sponsor_profile_payload()
+    names = {founder["name"] for founder in payload["founders"]}
+    assert names == {"Priya Anand", "Marcus Webb", "Dana Ilkay"}
+
+    dana = next(founder for founder in payload["founders"] if founder["name"] == "Dana Ilkay")
+    assert dana["wealth_signal"]["insufficient_data"] is True
+    assert dana["wealth_signal"]["range_low_millions"] is None
+
+
+def test_sponsor_network_payload_includes_concentration_flags():
+    from creditpulse.api import build_sponsor_network_payload
+
+    payload = build_sponsor_network_payload()
+    assert len(payload["nodes"]) > 0
+    assert len(payload["concentration_flags"]) == 1
+    assert set(payload["concentration_flags"][0]["shared_companies"]) == {"Meridian SaaS Co.", "Northbeam Robotics"}
+
+
+def test_adverse_media_payload_reports_human_review_required_count():
+    from creditpulse.api import build_adverse_media_payload
+
+    payload = build_adverse_media_payload()
+    assert payload["human_review_required_count"] == 1
+    ambiguous = next(record for record in payload["records"] if record["record_id"] == 3)
+    assert ambiguous["human_review"] is True
+    assert ambiguous["classification"] == "ongoing_ambiguous"
+
+
+def test_contract_payload_includes_sponsor_key_with_all_three_sections():
+    from creditpulse.api import build_contract_payload
+
+    payload = build_contract_payload()
+    assert set(payload["sponsor"]) == {"profile", "network", "adverse_media"}
+    assert len(payload["sponsor"]["profile"]["founders"]) == 3
+
+
+def test_evals_payload_includes_sponsor_module_field_accuracy_against_independent_ground_truth():
+    """Ground truth for both rows was authored independently of the module's own code (see
+    data/ground_truth/wealth_estimate_answer_key.json and adverse_media_answer_key.json's
+    _provenance fields) -- this proves the wiring, not just that the module agrees with itself."""
+    from creditpulse.api import build_evals_payload
+
+    payload = build_evals_payload()
+    field_names = {row["field_name"] for row in payload["field_accuracy"]}
+    assert {"Founder Wealth Signal", "Adverse Media Classification"} <= field_names
+
+    wealth_row = next(row for row in payload["field_accuracy"] if row["field_name"] == "Founder Wealth Signal")
+    assert wealth_row["accuracy"] == 1.0
+    assert wealth_row["n"] == 3
+
+    adverse_media_row = next(row for row in payload["field_accuracy"] if row["field_name"] == "Adverse Media Classification")
+    assert adverse_media_row["accuracy"] == 1.0
+    assert adverse_media_row["n"] == 3
+
+    assert payload["missing_ground_truth"] == []

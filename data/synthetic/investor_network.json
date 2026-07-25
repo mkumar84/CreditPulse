@@ -1,0 +1,37 @@
+{
+  "_note": "Fictional network data for Meridian SaaS Co.'s sponsor diligence module. All nodes and edges are invented for this portfolio prototype.",
+  "nodes": [
+    {"id": "meridian", "type": "company", "name": "Meridian SaaS Co."},
+    {"id": "lattice_metrics", "type": "company", "name": "Lattice Metrics", "status": "acquired_2021"},
+    {"id": "ferrotech_systems", "type": "company", "name": "Ferrotech Systems", "status": "shut_down_2019"},
+    {"id": "northbeam_robotics", "type": "company", "name": "Northbeam Robotics", "status": "active"},
+    {"id": "priya_anand", "type": "person", "name": "Priya Anand", "role": "Co-Founder & CEO, Meridian SaaS Co."},
+    {"id": "marcus_webb", "type": "person", "name": "Marcus Webb", "role": "Co-Founder & CTO, Meridian SaaS Co."},
+    {"id": "dana_ilkay", "type": "person", "name": "Dana Ilkay", "role": "Chief Revenue Officer, Meridian SaaS Co."},
+    {"id": "highline_ventures", "type": "investor", "name": "Highline Ventures"},
+    {"id": "anchor_point_capital", "type": "investor", "name": "Anchor Point Capital"},
+    {"id": "grayridge_partners", "type": "investor", "name": "Grayridge Partners"},
+    {"id": "concord_systems", "type": "company", "name": "Concord Systems", "status": "active"}
+  ],
+  "edges": [
+    {"source": "priya_anand", "target": "meridian", "type": "co_founded"},
+    {"source": "marcus_webb", "target": "meridian", "type": "co_founded"},
+    {"source": "priya_anand", "target": "lattice_metrics", "type": "co_founded"},
+    {"source": "marcus_webb", "target": "ferrotech_systems", "type": "co_founded"},
+    {"source": "dana_ilkay", "target": "concord_systems", "type": "previously_worked_at"},
+
+    {"source": "anchor_point_capital", "target": "meridian", "type": "invested_in", "round": "Seed"},
+    {"source": "highline_ventures", "target": "meridian", "type": "invested_in", "round": "Series A"},
+    {"source": "grayridge_partners", "target": "meridian", "type": "invested_in", "round": "Series B"},
+    {"source": "highline_ventures", "target": "lattice_metrics", "type": "invested_in", "round": "Series A"},
+    {"source": "highline_ventures", "target": "northbeam_robotics", "type": "invested_in", "round": "Seed"},
+    {"source": "anchor_point_capital", "target": "northbeam_robotics", "type": "invested_in", "round": "Series A"},
+
+    {"source": "priya_anand", "target": "meridian", "type": "board_seat"},
+    {"source": "anchor_point_capital", "target": "meridian", "type": "board_seat"},
+    {"source": "highline_ventures", "target": "meridian", "type": "board_seat"},
+    {"source": "grayridge_partners", "target": "meridian", "type": "board_seat"},
+    {"source": "highline_ventures", "target": "northbeam_robotics", "type": "board_seat"},
+    {"source": "anchor_point_capital", "target": "northbeam_robotics", "type": "board_seat"}
+  ]
+}
