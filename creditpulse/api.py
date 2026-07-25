@@ -472,6 +472,7 @@ def _wealth_estimate_matches(actual: WealthEstimate, expected: dict[str, Any]) -
     return (
         abs(actual.range_low_millions - expected["expected_range_low_millions"]) < WEALTH_ESTIMATE_TOLERANCE
         and abs(actual.range_high_millions - expected["expected_range_high_millions"]) < WEALTH_ESTIMATE_TOLERANCE
+        and abs(actual.range_band_pct - expected["expected_range_band_pct"]) < WEALTH_ESTIMATE_TOLERANCE
         and actual.confidence == expected["expected_confidence"]
     )
 
@@ -540,6 +541,7 @@ def _serialize_wealth_estimate(estimate: WealthEstimate) -> dict[str, Any]:
         "range_high_millions": estimate.range_high_millions,
         "point_estimate_millions": estimate.point_estimate_millions,
         "confidence": estimate.confidence,
+        "range_band_pct": estimate.range_band_pct,
         "methodology_note": estimate.methodology_note,
         "prior_exit_component_millions": estimate.prior_exit_component_millions,
         "current_stake_component_millions": estimate.current_stake_component_millions,

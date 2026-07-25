@@ -806,6 +806,7 @@ def test_wealth_estimator_computes_full_range_when_both_components_disclosed():
     assert estimate.prior_exit_component_millions == pytest.approx(19.8)
     assert estimate.current_stake_component_millions == pytest.approx(39.6)
     assert estimate.point_estimate_millions == pytest.approx(59.4)
+    assert estimate.range_band_pct == pytest.approx(0.25)  # full disclosure -> base band, unwidened
     assert estimate.range_low_millions == pytest.approx(44.6)
     assert estimate.range_high_millions == pytest.approx(74.2)
     assert estimate.confidence == "medium"
@@ -815,7 +816,9 @@ def test_wealth_estimator_computes_full_range_when_both_components_disclosed():
 
 def test_wealth_estimator_low_confidence_when_only_current_stake_disclosed():
     """Marcus Webb: prior venture shut down with no proceeds (a disclosed $0, not missing data),
-    so only the current cap table stake counts as real disclosed wealth data -> low confidence."""
+    so only the current cap table stake counts as real disclosed wealth data -> low confidence,
+    with a band widened to 50% (double the 25% base) since only 1 of 2 possible components are
+    disclosed -- confidence and range width are linked, not decoupled."""
     from creditpulse.founder_extraction import extract_cap_table, extract_founder_profiles
     from creditpulse.wealth_estimator import estimate_wealth
 
@@ -827,10 +830,32 @@ def test_wealth_estimator_low_confidence_when_only_current_stake_disclosed():
     assert estimate.insufficient_data is False
     assert estimate.prior_exit_component_millions == 0.0
     assert estimate.current_stake_component_millions == pytest.approx(26.4)
-    assert estimate.range_low_millions == pytest.approx(19.8)
-    assert estimate.range_high_millions == pytest.approx(33.0)
+    assert estimate.range_band_pct == pytest.approx(0.5)
+    assert estimate.range_low_millions == pytest.approx(13.2)
+    assert estimate.range_high_millions == pytest.approx(39.6)
     assert estimate.confidence == "low"
     assert estimate.disclosed_component_count == 1
+    assert "widened" in estimate.methodology_note
+
+
+def test_wealth_estimator_widens_band_for_lower_confidence_not_just_the_label():
+    """Direct proof that confidence and range width are linked: a low-confidence estimate
+    (Marcus, 1/2 components disclosed) must show a strictly wider relative band than a
+    medium-confidence one (Priya, 2/2 disclosed) -- not the same tightness with a different
+    label next to it."""
+    from creditpulse.founder_extraction import extract_cap_table, extract_founder_profiles
+    from creditpulse.wealth_estimator import estimate_wealth
+
+    profiles = {profile.name: profile for profile in extract_founder_profiles("data/synthetic/founder_bios.md")}
+    cap_table = extract_cap_table("data/synthetic/cap_table.md")
+
+    priya_estimate = estimate_wealth(profiles["Priya Anand"], cap_table)
+    marcus_estimate = estimate_wealth(profiles["Marcus Webb"], cap_table)
+
+    assert priya_estimate.confidence == "medium"
+    assert marcus_estimate.confidence == "low"
+    assert marcus_estimate.range_band_pct > priya_estimate.range_band_pct
+    assert marcus_estimate.range_band_pct == pytest.approx(2 * priya_estimate.range_band_pct)
 
 
 def test_wealth_estimator_reports_insufficient_data_explicitly_never_guesses():

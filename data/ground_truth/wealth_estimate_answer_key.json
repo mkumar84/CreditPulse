@@ -1,25 +1,27 @@
 {
-  "_provenance": "Each expected range below was computed independently by hand from the raw disclosed figures in data/synthetic/founder_bios.md and data/synthetic/cap_table.md (exit value, founder equity % at exit, cap table %, latest implied valuation), applying the formula documented in CreditPulse_Sponsor_Diligence_PRD.md (prior-exit proceeds + current-stake value, +/-25% band around the point estimate) with a plain calculator/script — not by importing or running creditpulse.wealth_estimator. This exists to catch a real arithmetic bug in that module, not to restate its output.",
+  "_provenance": "Each expected range below was computed independently by hand from the raw disclosed figures in data/synthetic/founder_bios.md and data/synthetic/cap_table.md (exit value, founder equity % at exit, cap table %, latest implied valuation), applying the formula documented in CreditPulse_Sponsor_Diligence_PRD.md (prior-exit proceeds + current-stake value) with a plain calculator/script — not by importing or running creditpulse.wealth_estimator. This exists to catch a real arithmetic bug in that module, not to restate its output. The uncertainty band is confidence-linked, not flat: base_band(25%) x (2 possible components / N disclosed components) -- 25% at 2/2 disclosed, 50% at 1/2 disclosed -- so a low-confidence estimate is expected to show a visibly wider range than a medium-confidence one, not just a different label on an equally-tight number.",
   "founders": {
     "Priya Anand": {
       "insufficient_data": false,
       "expected_prior_exit_component_millions": 19.8,
       "expected_current_stake_component_millions": 39.6,
       "expected_point_estimate_millions": 59.4,
+      "expected_range_band_pct": 0.25,
       "expected_range_low_millions": 44.6,
       "expected_range_high_millions": 74.2,
       "expected_confidence": "medium",
-      "rationale": "Lattice Metrics acquisition: $180.0M x 11.0% disclosed founder equity at exit = $19.8M. Meridian cap table stake: 18.0% x $220.0M latest implied valuation = $39.6M. Point estimate $59.4M; range is $59.4M x [0.75, 1.25] = [$44.55M, $74.25M], rounded to 1 decimal = [$44.6M, $74.2M]. Both components disclosed -> medium confidence."
+      "rationale": "Lattice Metrics acquisition: $180.0M x 11.0% disclosed founder equity at exit = $19.8M. Meridian cap table stake: 18.0% x $220.0M latest implied valuation = $39.6M. Point estimate $59.4M. Both components disclosed (2/2) -> band = 25% x (2/2) = 25%; range is $59.4M x [0.75, 1.25] = [$44.55M, $74.25M], rounded to 1 decimal = [$44.6M, $74.2M]. Medium confidence."
     },
     "Marcus Webb": {
       "insufficient_data": false,
       "expected_prior_exit_component_millions": 0.0,
       "expected_current_stake_component_millions": 26.4,
       "expected_point_estimate_millions": 26.4,
-      "expected_range_low_millions": 19.8,
-      "expected_range_high_millions": 33.0,
+      "expected_range_band_pct": 0.5,
+      "expected_range_low_millions": 13.2,
+      "expected_range_high_millions": 39.6,
       "expected_confidence": "low",
-      "rationale": "Ferrotech Systems shut down with no proceeds to founders (disclosed fact, not an unknown) -> $0.0M prior-exit component, and this does not count as disclosed wealth data. Meridian cap table stake: 12.0% x $220.0M latest implied valuation = $26.4M. Point estimate $26.4M; range is $26.4M x [0.75, 1.25] = [$19.8M, $33.0M]. Only one real disclosed component (current stake) -> low confidence."
+      "rationale": "Ferrotech Systems shut down with no proceeds to founders (disclosed fact, not an unknown) -> $0.0M prior-exit component, and this does not count as disclosed wealth data. Meridian cap table stake: 12.0% x $220.0M latest implied valuation = $26.4M. Point estimate $26.4M. Only one real disclosed component (1/2) -> band = 25% x (2/1) = 50%; range is $26.4M x [0.5, 1.5] = [$13.2M, $39.6M]. Low confidence, and visibly wider than Priya's 25%-banded range, not just a different label."
     },
     "Dana Ilkay": {
       "insufficient_data": true,
