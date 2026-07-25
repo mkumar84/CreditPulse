@@ -23,7 +23,7 @@ to a real person.
 ## Executive: Dana Ilkay
 **Role:** Chief Revenue Officer
 **Education:** B.A. Economics, University of Washington
-**Bio:** Ilkay joined Meridian SaaS Co. in January 2026 as its first dedicated revenue leader, following a decade in enterprise sales leadership roles at larger technology companies. This is Ilkay's first founder-level equity position.
+**Bio:** Ilkay joined Meridian SaaS Co. in January 2026 as its first dedicated revenue leader, most recently having spent four years as VP of Sales at Concord Systems, following a decade in enterprise sales leadership roles at larger technology companies. This is Ilkay's first founder-level equity position.
 
 ### Prior Ventures
 - None disclosed. Ilkay has no prior founder or company-exit history; her Meridian equity grant is pending board ratification (see `cap_table.md` §3) and is not yet reflected in Meridian's fully-diluted ownership figures.
