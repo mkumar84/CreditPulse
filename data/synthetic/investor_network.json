@@ -14,25 +14,25 @@
     {"id": "concord_systems", "type": "company", "name": "Concord Systems", "status": "active"}
   ],
   "edges": [
-    {"source": "priya_anand", "target": "meridian", "type": "co_founded"},
-    {"source": "marcus_webb", "target": "meridian", "type": "co_founded"},
-    {"source": "priya_anand", "target": "lattice_metrics", "type": "co_founded"},
-    {"source": "marcus_webb", "target": "ferrotech_systems", "type": "co_founded"},
-    {"source": "dana_ilkay", "target": "concord_systems", "type": "previously_worked_at"},
-    {"source": "dana_ilkay", "target": "meridian", "type": "current_role", "role": "Chief Revenue Officer", "since": "2026-01"},
+    {"source": "priya_anand", "target": "meridian", "type": "co_founded", "citation": {"document": "founder_bios.md", "line": 8}},
+    {"source": "marcus_webb", "target": "meridian", "type": "co_founded", "citation": {"document": "founder_bios.md", "line": 16}},
+    {"source": "priya_anand", "target": "lattice_metrics", "type": "co_founded", "citation": {"document": "founder_bios.md", "line": 13}},
+    {"source": "marcus_webb", "target": "ferrotech_systems", "type": "co_founded", "citation": {"document": "founder_bios.md", "line": 21}},
+    {"source": "dana_ilkay", "target": "concord_systems", "type": "previously_worked_at", "citation": {"document": "founder_bios.md", "line": 26}},
+    {"source": "dana_ilkay", "target": "meridian", "type": "current_role", "role": "Chief Revenue Officer", "since": "2026-01", "citation": {"document": "founder_bios.md", "line": 26}},
 
-    {"source": "anchor_point_capital", "target": "meridian", "type": "invested_in", "round": "Seed"},
-    {"source": "highline_ventures", "target": "meridian", "type": "invested_in", "round": "Series A"},
-    {"source": "grayridge_partners", "target": "meridian", "type": "invested_in", "round": "Series B"},
-    {"source": "highline_ventures", "target": "lattice_metrics", "type": "invested_in", "round": "Series A"},
-    {"source": "highline_ventures", "target": "northbeam_robotics", "type": "invested_in", "round": "Seed"},
-    {"source": "anchor_point_capital", "target": "northbeam_robotics", "type": "invested_in", "round": "Series A"},
+    {"source": "anchor_point_capital", "target": "meridian", "type": "invested_in", "round": "Seed", "citation": {"document": "cap_table.md", "line": 13}},
+    {"source": "highline_ventures", "target": "meridian", "type": "invested_in", "round": "Series A", "citation": {"document": "cap_table.md", "line": 14}},
+    {"source": "grayridge_partners", "target": "meridian", "type": "invested_in", "round": "Series B", "citation": {"document": "cap_table.md", "line": 15}},
+    {"source": "highline_ventures", "target": "lattice_metrics", "type": "invested_in", "round": "Series A", "citation": null},
+    {"source": "highline_ventures", "target": "northbeam_robotics", "type": "invested_in", "round": "Seed", "citation": null},
+    {"source": "anchor_point_capital", "target": "northbeam_robotics", "type": "invested_in", "round": "Series A", "citation": null},
 
-    {"source": "priya_anand", "target": "meridian", "type": "board_seat"},
-    {"source": "anchor_point_capital", "target": "meridian", "type": "board_seat"},
-    {"source": "highline_ventures", "target": "meridian", "type": "board_seat"},
-    {"source": "grayridge_partners", "target": "meridian", "type": "board_seat"},
-    {"source": "highline_ventures", "target": "northbeam_robotics", "type": "board_seat"},
-    {"source": "anchor_point_capital", "target": "northbeam_robotics", "type": "board_seat"}
+    {"source": "priya_anand", "target": "meridian", "type": "board_seat", "citation": {"document": "cap_table.md", "line": 26}},
+    {"source": "anchor_point_capital", "target": "meridian", "type": "board_seat", "citation": {"document": "cap_table.md", "line": 26}},
+    {"source": "highline_ventures", "target": "meridian", "type": "board_seat", "citation": {"document": "cap_table.md", "line": 26}},
+    {"source": "grayridge_partners", "target": "meridian", "type": "board_seat", "citation": {"document": "cap_table.md", "line": 26}},
+    {"source": "highline_ventures", "target": "northbeam_robotics", "type": "board_seat", "citation": null},
+    {"source": "anchor_point_capital", "target": "northbeam_robotics", "type": "board_seat", "citation": null}
   ]
 }

@@ -24,7 +24,7 @@ from creditpulse.covenants import CovenantResult, MonthlyFinancial, load_financi
 from creditpulse.evals import covenant_precision_recall, extraction_accuracy, load_prompt_model_regression, memo_hallucination_rate
 from creditpulse.extraction import extract_from_sources, flatten_extraction_table
 from creditpulse.founder_extraction import CapTable, FounderProfile, PriorVenture, extract_cap_table, extract_founder_profiles
-from creditpulse.investor_network import EDGE_TYPE_LEGEND, ConcentrationFlag, compute_concentration_flags, load_investor_network
+from creditpulse.investor_network import EDGE_TYPE_LEGEND, ConcentrationFlag, compute_concentration_flags, load_investor_network, serialize_edges_with_citation_status
 from creditpulse.memo_drafter import MEMO_SECTIONS, draft_memo_claims
 from creditpulse.policy import MemoClaim, final_memo_allowed, render_claim
 from creditpulse.simulate import describe_result_metadata, simulate_covenants
@@ -182,7 +182,10 @@ def build_sponsor_profile_payload() -> dict[str, Any]:
 def build_sponsor_network_payload() -> dict[str, Any]:
     """Return the investor/board network graph plus a deterministic concentration-risk flag.
 
-    Nodes/edges are served as-is (structured passthrough, no LLM). The
+    Nodes are served as-is; edges are annotated with an explicit
+    has_citation boolean (real citation vs. explicit null in the source
+    data — see investor_network.py's module docstring) so every edge type
+    is flagged consistently rather than some being silently dropped. The
     concentration flag comes from a plain graph traversal (set intersection
     over board_seat edges), not a judgment call.
     """
@@ -190,7 +193,7 @@ def build_sponsor_network_payload() -> dict[str, Any]:
     flags = compute_concentration_flags(network)
     return {
         "nodes": network["nodes"],
-        "edges": network["edges"],
+        "edges": serialize_edges_with_citation_status(network["edges"]),
         "edge_type_legend": [{"type": edge_type, **style} for edge_type, style in EDGE_TYPE_LEGEND.items()],
         "concentration_flags": [_serialize_concentration_flag(flag) for flag in flags],
     }

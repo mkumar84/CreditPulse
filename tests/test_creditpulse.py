@@ -922,6 +922,107 @@ def test_edge_type_legend_covers_all_five_types_with_distinct_styling():
     assert legend_types == set(EDGE_TYPE_LEGEND)
 
 
+def test_every_edge_carries_an_explicit_citation_key_never_omitted():
+    """Every edge in the raw source data must have a citation key present -- a real
+    {document, line} dict or an explicit null -- never simply absent. A missing key and
+    an explicit null carrying the same meaning through two different signals is exactly
+    what let a citation-presence check treat edge types inconsistently before this fix."""
+    from creditpulse.investor_network import load_investor_network
+
+    network = load_investor_network("data/synthetic/investor_network.json")
+    for edge in network["edges"]:
+        assert "citation" in edge, edge
+
+
+def test_edges_with_genuine_source_basis_cite_the_correct_line():
+    """co_founded/current_role edges cite founder_bios.md; board_seat/invested_in edges at
+    Meridian cite cap_table.md. Verified against the actual source text at each cited line,
+    not just that a citation object is present."""
+    import pathlib
+
+    from creditpulse.investor_network import load_investor_network
+
+    network = load_investor_network("data/synthetic/investor_network.json")
+    docs = {
+        "founder_bios.md": pathlib.Path("data/synthetic/founder_bios.md").read_text().splitlines(),
+        "cap_table.md": pathlib.Path("data/synthetic/cap_table.md").read_text().splitlines(),
+    }
+
+    def cited_text(edge):
+        citation = edge["citation"]
+        return docs[citation["document"]][citation["line"] - 1]
+
+    edges_by_key = {(edge["source"], edge["target"], edge["type"]): edge for edge in network["edges"]}
+
+    priya_co_founded = edges_by_key[("priya_anand", "meridian", "co_founded")]
+    assert priya_co_founded["citation"]["document"] == "founder_bios.md"
+    assert "Co-Founder" in cited_text(priya_co_founded)
+
+    lattice = edges_by_key[("priya_anand", "lattice_metrics", "co_founded")]
+    assert "Lattice Metrics" in cited_text(lattice) and "Co-founded" in cited_text(lattice)
+
+    dana_current_role = edges_by_key[("dana_ilkay", "meridian", "current_role")]
+    assert "Meridian SaaS Co." in cited_text(dana_current_role) and "January 2026" in cited_text(dana_current_role)
+
+    dana_prior_employer = edges_by_key[("dana_ilkay", "concord_systems", "previously_worked_at")]
+    assert dana_prior_employer["citation"]["document"] == "founder_bios.md"
+    assert "Concord Systems" in cited_text(dana_prior_employer)  # real basis, not fabricated
+
+    highline_invested = edges_by_key[("highline_ventures", "meridian", "invested_in")]
+    assert highline_invested["citation"]["document"] == "cap_table.md"
+    assert "Highline Ventures" in cited_text(highline_invested)
+
+    priya_board_seat = edges_by_key[("priya_anand", "meridian", "board_seat")]
+    assert priya_board_seat["citation"]["document"] == "cap_table.md"
+    assert "board" in cited_text(priya_board_seat).lower()
+
+
+def test_edges_with_no_genuine_source_are_explicitly_uncited_not_fabricated():
+    """The Northbeam Robotics edges (both investors' invested_in/board_seat) and Highline's
+    investment in Lattice Metrics exist only to demonstrate the concentration-risk flag --
+    no source document backs them. They must be explicitly citation: null, never given a
+    fabricated citation just to fill the field."""
+    from creditpulse.investor_network import load_investor_network
+
+    network = load_investor_network("data/synthetic/investor_network.json")
+    edges_by_key = {(edge["source"], edge["target"], edge["type"]): edge for edge in network["edges"]}
+
+    uncited_keys = [
+        ("highline_ventures", "lattice_metrics", "invested_in"),
+        ("highline_ventures", "northbeam_robotics", "invested_in"),
+        ("anchor_point_capital", "northbeam_robotics", "invested_in"),
+        ("highline_ventures", "northbeam_robotics", "board_seat"),
+        ("anchor_point_capital", "northbeam_robotics", "board_seat"),
+    ]
+    for key in uncited_keys:
+        assert edges_by_key[key]["citation"] is None, key
+
+
+def test_sponsor_network_payload_flags_every_uncited_edge_type_consistently():
+    """has_citation must be computed uniformly across ALL edge types -- an uncited
+    previously_worked_at edge and an uncited invested_in/board_seat edge must be flagged
+    identically (has_citation: False), never one silently dropped while another is kept.
+    Since previously_worked_at now has a real citation, this proves the *mechanism* treats
+    types uniformly using the still-uncited Northbeam/Lattice-Metrics edges as the case."""
+    from creditpulse.api import build_sponsor_network_payload
+
+    payload = build_sponsor_network_payload()
+    assert len(payload["edges"]) == 18  # no edge dropped for lacking a citation
+
+    uncited = [edge for edge in payload["edges"] if not edge["has_citation"]]
+    assert len(uncited) == 5
+    assert {edge["type"] for edge in uncited} == {"invested_in", "board_seat"}
+
+    cited = [edge for edge in payload["edges"] if edge["has_citation"]]
+    assert len(cited) == 13
+    for edge in cited:
+        assert edge["citation"] is not None
+
+    # Every edge, regardless of type or citation status, is present in the response --
+    # has_citation is a flag, not a filter.
+    assert {edge["type"] for edge in payload["edges"]} == {"co_founded", "current_role", "board_seat", "invested_in", "previously_worked_at"}
+
+
 def test_no_current_person_at_meridian_is_disconnected_from_it_in_the_network():
     """General check, not just a Dana-specific regression test: every person founder_bios.md
     describes as CURRENTLY at Meridian (an independent source from the graph itself) must

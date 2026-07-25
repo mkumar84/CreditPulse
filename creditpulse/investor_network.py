@@ -16,6 +16,22 @@ collapsed into one another):
   - board_seat: holds a board seat.
   - invested_in: has invested capital.
   - previously_worked_at: past (not current) employment.
+
+Citations: every edge in investor_network.json carries an explicit
+"citation" key — a real {document, line} pointing at the exact source
+sentence in founder_bios.md or cap_table.md when one genuinely exists, or
+an explicit `null` when it doesn't (e.g. investor-to-Northbeam-Robotics
+edges exist only to demonstrate the concentration-risk flag and have no
+backing source document). The key is never simply omitted — a missing key
+and an explicit null would otherwise carry the same meaning through two
+different signals, which is exactly the kind of inconsistency that let a
+citation-presence check treat edge types differently. Every edge also
+gets a computed `has_citation` boolean at serialization time
+(serialize_edges_with_citation_status, below) so a consumer never has to
+infer citation status from key presence vs. null. No edge is ever dropped
+for lacking a citation — an uncited edge is flagged, the same way
+policy.py's render_claim() flags an unsupported memo claim rather than
+deleting it.
 """
 
 from __future__ import annotations
@@ -54,6 +70,19 @@ class ConcentrationFlag:
 def load_investor_network(path: str | Path) -> dict[str, Any]:
     """Load investor_network.json as-is — structured data passthrough."""
     return json.loads(Path(path).read_text())
+
+
+def serialize_edges_with_citation_status(edges: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Annotate every edge with an explicit has_citation boolean, uniformly.
+
+    Every edge already carries a citation key in the source data (a real
+    {document, line} dict, or explicit null) — this just makes "is this
+    edge cited" a single, unambiguous computed field instead of something
+    a consumer has to re-derive from key presence vs. null each time.
+    Every edge type is treated identically here: this function never
+    drops an edge for lacking a citation, regardless of its type.
+    """
+    return [{**edge, "citation": edge.get("citation"), "has_citation": edge.get("citation") is not None} for edge in edges]
 
 
 def find_current_people_disconnected_from_company(
