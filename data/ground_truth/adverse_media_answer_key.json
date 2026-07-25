@@ -1,0 +1,23 @@
+{
+  "_provenance": "Each expected classification below is an independent read of data/synthetic/adverse_media_records.md's actual text, written by the record's own stated outcome language (resolved via consent agreement / dismissed with prejudice vs. no findings issued / no resolution timeline) -- not derived from running creditpulse.adverse_media.classify_records() or copying its output. This exists to catch a real misclassification, not restate the classifier's answer, per CreditPulse_Sponsor_Diligence_PRD.md's explicit instruction not to repeat the MAC-style tautology mistake.",
+  "records": {
+    "1": {
+      "title": "Ferrotech Systems — FTC Data-Handling Inquiry",
+      "expected_classification": "resolved_immaterial",
+      "expected_human_review": false,
+      "rationale": "Explicitly resolved via a 2020 consent agreement, no admission of wrongdoing, a modest settlement, and the record states no further obligations or open proceedings remain. This is a closed matter with a stated final outcome -- genuinely immaterial, not merely quiet."
+    },
+    "2": {
+      "title": "Lattice Metrics — Vendor Contract Dispute",
+      "expected_classification": "resolved_immaterial",
+      "expected_human_review": false,
+      "rationale": "A minor vendor contract dispute, settled for an undisclosed immaterial amount, dismissed with prejudice (a legal final resolution barring re-filing). No admission of liability, no further exposure stated. Clearly immaterial and closed."
+    },
+    "3": {
+      "title": "State Attorney General Inquiry — Ongoing",
+      "expected_classification": "ongoing_ambiguous",
+      "expected_human_review": true,
+      "rationale": "Explicitly ongoing: no findings issued, no settlement reached, no resolution timeline disclosed, and the record itself states the outcome and materiality cannot currently be determined. This is the genuinely ambiguous record the human-review routing exists for -- it must never be auto-classified as clean regardless of what an LLM or fallback heuristic proposes."
+    }
+  }
+}

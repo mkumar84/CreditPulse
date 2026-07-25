@@ -8,13 +8,22 @@
         "confidence": 0.99
       }
     },
+    "facility_size_millions": {
+      "value": 15.0,
+      "citation": {
+        "document": "loan_agreement.md",
+        "section": "1.1",
+        "line": 4,
+        "confidence": 0.99
+      }
+    },
     "covenants": {
       "minimum_liquidity_cash_millions": {
         "value": 8.0,
         "citation": {
           "document": "loan_agreement.md",
           "section": "4.1",
-          "line": 4,
+          "line": 7,
           "confidence": 0.99
         }
       },
@@ -23,7 +32,7 @@
         "citation": {
           "document": "loan_agreement.md",
           "section": "4.1",
-          "line": 4,
+          "line": 7,
           "confidence": 0.99
         }
       },
@@ -32,7 +41,7 @@
         "citation": {
           "document": "loan_agreement.md",
           "section": "4.2",
-          "line": 7,
+          "line": 10,
           "confidence": 0.98
         }
       },
@@ -41,7 +50,7 @@
         "citation": {
           "document": "loan_agreement.md",
           "section": "4.3",
-          "line": 10,
+          "line": 13,
           "confidence": 0.98
         }
       },
@@ -50,7 +59,7 @@
         "citation": {
           "document": "loan_agreement.md",
           "section": "4.4",
-          "line": 13,
+          "line": 16,
           "confidence": 0.98
         }
       }
@@ -1338,7 +1347,7 @@
     ]
   },
   "memo": {
-    "model_label": "Claude API (memo drafter)",
+    "model_label": "Claude API (memo drafter) \u2014 deterministic fallback, no live key",
     "status": "human_review_required",
     "final_allowed": false,
     "sections": [
@@ -1534,13 +1543,23 @@
         "field_name": "Facility Size",
         "accuracy": 1.0,
         "n": 1,
-        "citation": "loan_agreement.md \u00a74.1"
+        "citation": "loan_agreement.md \u00a71.1"
       },
       {
         "field_name": "MAC-Style / Committed MRR Interpretation",
         "accuracy": 1.0,
         "n": 1,
         "citation": "loan_agreement.md \u00a74.5"
+      },
+      {
+        "field_name": "Founder Wealth Signal",
+        "accuracy": 1.0,
+        "n": 3
+      },
+      {
+        "field_name": "Adverse Media Classification",
+        "accuracy": 1.0,
+        "n": 3
       }
     ],
     "missing_ground_truth": [],
@@ -1562,5 +1581,412 @@
         "memo_hallucination_rate": 0.04
       }
     ]
+  },
+  "sponsor": {
+    "profile": {
+      "founders": [
+        {
+          "name": "Priya Anand",
+          "title_kind": "Founder",
+          "role": {
+            "value": "Co-Founder & Chief Executive Officer",
+            "citation": {
+              "document": "founder_bios.md",
+              "line": 7
+            }
+          },
+          "education": {
+            "value": "B.S. Computer Science, University of Michigan; M.S. Computer Science, Stanford University",
+            "citation": {
+              "document": "founder_bios.md",
+              "line": 7
+            }
+          },
+          "bio": {
+            "value": "Anand co-founded Meridian SaaS Co. in 2023 after eight years building data infrastructure products. She has led Meridian's product and go-to-market strategy since inception and is Meridian's sole founder-director on the board.",
+            "citation": {
+              "document": "founder_bios.md",
+              "line": 7
+            }
+          },
+          "prior_ventures": [
+            {
+              "company": "Lattice Metrics",
+              "outcome": "Co-founded and served as CEO. Lattice Metrics, a data infrastructure startup, was acquired by a public enterprise software company in 2021 for $180.0 million in total consideration. Anand held a disclosed 11.0% founder equity stake at the time of acquisition, per the acquisition's public disclosure filing.",
+              "exit_value_millions": 180.0,
+              "founder_equity_pct_at_exit": 11.0,
+              "shut_down_no_proceeds": false,
+              "citation": {
+                "document": "founder_bios.md",
+                "line": 13
+              }
+            }
+          ],
+          "wealth_signal": {
+            "insufficient_data": false,
+            "range_low_millions": 44.6,
+            "range_high_millions": 74.2,
+            "point_estimate_millions": 59.4,
+            "confidence": "medium",
+            "methodology_note": "Estimated from disclosed prior-exit proceeds ($19.8M, from disclosed exit value x disclosed founder equity % at exit) and current Meridian cap table stake at the latest disclosed implied valuation ($39.6M). Range reflects a fixed +/-25% band around the $59.4M point estimate, to account for disclosed figures being approximations, not verified or audited net worth. This is not a verified net worth figure.",
+            "prior_exit_component_millions": 19.8,
+            "current_stake_component_millions": 39.6,
+            "disclosed_component_count": 2,
+            "sources": [
+              {
+                "field": "prior_venture:Lattice Metrics",
+                "citation": {
+                  "document": "founder_bios.md",
+                  "line": 13
+                }
+              },
+              {
+                "field": "cap_table_stake",
+                "citation": {
+                  "document": "cap_table.md",
+                  "line": 10
+                }
+              },
+              {
+                "field": "latest_implied_valuation",
+                "citation": {
+                  "document": "cap_table.md",
+                  "line": 22
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "Marcus Webb",
+          "title_kind": "Founder",
+          "role": {
+            "value": "Co-Founder & Chief Technology Officer",
+            "citation": {
+              "document": "founder_bios.md",
+              "line": 15
+            }
+          },
+          "education": {
+            "value": "B.S. Electrical Engineering, Georgia Institute of Technology",
+            "citation": {
+              "document": "founder_bios.md",
+              "line": 15
+            }
+          },
+          "bio": {
+            "value": "Webb co-founded Meridian SaaS Co. in 2023 and leads engineering and infrastructure. He spent the prior decade building industrial software before joining Meridian.",
+            "citation": {
+              "document": "founder_bios.md",
+              "line": 15
+            }
+          },
+          "prior_ventures": [
+            {
+              "company": "Ferrotech Systems",
+              "outcome": "Founded and served as CEO. Ferrotech Systems, an industrial IoT company, shut down in 2019 after failing to close a follow-on financing round; the shutdown returned no proceeds to founders or investors. In 2019, Ferrotech was the subject of an FTC inquiry into its data-handling practices, resolved via a 2020 consent agreement with no admission of wrongdoing and a modest civil settlement \u2014 see `adverse_media_records.md` for the full record.",
+              "exit_value_millions": null,
+              "founder_equity_pct_at_exit": null,
+              "shut_down_no_proceeds": true,
+              "citation": {
+                "document": "founder_bios.md",
+                "line": 21
+              }
+            }
+          ],
+          "wealth_signal": {
+            "insufficient_data": false,
+            "range_low_millions": 19.8,
+            "range_high_millions": 33.0,
+            "point_estimate_millions": 26.4,
+            "confidence": "low",
+            "methodology_note": "Estimated from current Meridian cap table stake at the latest disclosed implied valuation ($26.4M). Range reflects a fixed +/-25% band around the $26.4M point estimate, to account for disclosed figures being approximations, not verified or audited net worth. This is not a verified net worth figure.",
+            "prior_exit_component_millions": 0.0,
+            "current_stake_component_millions": 26.4,
+            "disclosed_component_count": 1,
+            "sources": [
+              {
+                "field": "cap_table_stake",
+                "citation": {
+                  "document": "cap_table.md",
+                  "line": 11
+                }
+              },
+              {
+                "field": "latest_implied_valuation",
+                "citation": {
+                  "document": "cap_table.md",
+                  "line": 22
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "Dana Ilkay",
+          "title_kind": "Executive",
+          "role": {
+            "value": "Chief Revenue Officer",
+            "citation": {
+              "document": "founder_bios.md",
+              "line": 23
+            }
+          },
+          "education": {
+            "value": "B.A. Economics, University of Washington",
+            "citation": {
+              "document": "founder_bios.md",
+              "line": 23
+            }
+          },
+          "bio": {
+            "value": "Ilkay joined Meridian SaaS Co. in January 2026 as its first dedicated revenue leader, following a decade in enterprise sales leadership roles at larger technology companies. This is Ilkay's first founder-level equity position.",
+            "citation": {
+              "document": "founder_bios.md",
+              "line": 23
+            }
+          },
+          "prior_ventures": [],
+          "wealth_signal": {
+            "insufficient_data": true,
+            "range_low_millions": null,
+            "range_high_millions": null,
+            "point_estimate_millions": null,
+            "confidence": null,
+            "methodology_note": "No disclosed prior-exit proceeds and no finalized cap table stake exist for this individual \u2014 insufficient disclosed data to estimate a wealth signal. This is not a zero estimate; it is an explicit absence of estimable data.",
+            "prior_exit_component_millions": 0.0,
+            "current_stake_component_millions": 0.0,
+            "disclosed_component_count": 0,
+            "sources": []
+          }
+        }
+      ]
+    },
+    "network": {
+      "nodes": [
+        {
+          "id": "meridian",
+          "type": "company",
+          "name": "Meridian SaaS Co."
+        },
+        {
+          "id": "lattice_metrics",
+          "type": "company",
+          "name": "Lattice Metrics",
+          "status": "acquired_2021"
+        },
+        {
+          "id": "ferrotech_systems",
+          "type": "company",
+          "name": "Ferrotech Systems",
+          "status": "shut_down_2019"
+        },
+        {
+          "id": "northbeam_robotics",
+          "type": "company",
+          "name": "Northbeam Robotics",
+          "status": "active"
+        },
+        {
+          "id": "priya_anand",
+          "type": "person",
+          "name": "Priya Anand",
+          "role": "Co-Founder & CEO, Meridian SaaS Co."
+        },
+        {
+          "id": "marcus_webb",
+          "type": "person",
+          "name": "Marcus Webb",
+          "role": "Co-Founder & CTO, Meridian SaaS Co."
+        },
+        {
+          "id": "dana_ilkay",
+          "type": "person",
+          "name": "Dana Ilkay",
+          "role": "Chief Revenue Officer, Meridian SaaS Co."
+        },
+        {
+          "id": "highline_ventures",
+          "type": "investor",
+          "name": "Highline Ventures"
+        },
+        {
+          "id": "anchor_point_capital",
+          "type": "investor",
+          "name": "Anchor Point Capital"
+        },
+        {
+          "id": "grayridge_partners",
+          "type": "investor",
+          "name": "Grayridge Partners"
+        },
+        {
+          "id": "concord_systems",
+          "type": "company",
+          "name": "Concord Systems",
+          "status": "active"
+        }
+      ],
+      "edges": [
+        {
+          "source": "priya_anand",
+          "target": "meridian",
+          "type": "co_founded"
+        },
+        {
+          "source": "marcus_webb",
+          "target": "meridian",
+          "type": "co_founded"
+        },
+        {
+          "source": "priya_anand",
+          "target": "lattice_metrics",
+          "type": "co_founded"
+        },
+        {
+          "source": "marcus_webb",
+          "target": "ferrotech_systems",
+          "type": "co_founded"
+        },
+        {
+          "source": "dana_ilkay",
+          "target": "concord_systems",
+          "type": "previously_worked_at"
+        },
+        {
+          "source": "anchor_point_capital",
+          "target": "meridian",
+          "type": "invested_in",
+          "round": "Seed"
+        },
+        {
+          "source": "highline_ventures",
+          "target": "meridian",
+          "type": "invested_in",
+          "round": "Series A"
+        },
+        {
+          "source": "grayridge_partners",
+          "target": "meridian",
+          "type": "invested_in",
+          "round": "Series B"
+        },
+        {
+          "source": "highline_ventures",
+          "target": "lattice_metrics",
+          "type": "invested_in",
+          "round": "Series A"
+        },
+        {
+          "source": "highline_ventures",
+          "target": "northbeam_robotics",
+          "type": "invested_in",
+          "round": "Seed"
+        },
+        {
+          "source": "anchor_point_capital",
+          "target": "northbeam_robotics",
+          "type": "invested_in",
+          "round": "Series A"
+        },
+        {
+          "source": "priya_anand",
+          "target": "meridian",
+          "type": "board_seat"
+        },
+        {
+          "source": "anchor_point_capital",
+          "target": "meridian",
+          "type": "board_seat"
+        },
+        {
+          "source": "highline_ventures",
+          "target": "meridian",
+          "type": "board_seat"
+        },
+        {
+          "source": "grayridge_partners",
+          "target": "meridian",
+          "type": "board_seat"
+        },
+        {
+          "source": "highline_ventures",
+          "target": "northbeam_robotics",
+          "type": "board_seat"
+        },
+        {
+          "source": "anchor_point_capital",
+          "target": "northbeam_robotics",
+          "type": "board_seat"
+        }
+      ],
+      "concentration_flags": [
+        {
+          "investor_a": "Anchor Point Capital",
+          "investor_b": "Highline Ventures",
+          "shared_companies": [
+            "Meridian SaaS Co.",
+            "Northbeam Robotics"
+          ],
+          "message": "Anchor Point Capital and Highline Ventures share board seats across 2 portfolio companies: Meridian SaaS Co., Northbeam Robotics."
+        }
+      ]
+    },
+    "adverse_media": {
+      "records": [
+        {
+          "record_id": 1,
+          "title": "Ferrotech Systems \u2014 FTC Data-Handling Inquiry",
+          "subject": "Marcus Webb (Co-Founder & CTO), via prior venture Ferrotech Systems",
+          "filed_year": 2019,
+          "status_text": "Resolved 2020",
+          "summary": "In 2019, the FTC opened an inquiry into Ferrotech Systems' data-handling practices following a customer complaint. The matter was resolved in 2020 via a consent agreement: Ferrotech made no admission of wrongdoing, paid a modest civil settlement, and agreed to updated data-handling procedures. No further obligations or open proceedings remain. Ferrotech had already ceased operations by the time the consent agreement was signed.",
+          "citation": {
+            "document": "adverse_media_records.md",
+            "line": 7
+          },
+          "classification": "resolved_immaterial",
+          "human_review": false,
+          "classification_source": "fallback_keyword",
+          "safety_gate_overrode": false,
+          "rationale": "Classified 'resolved_immaterial' via fallback_keyword, confirmed by the safety gate."
+        },
+        {
+          "record_id": 2,
+          "title": "Lattice Metrics \u2014 Vendor Contract Dispute",
+          "subject": "Priya Anand (Co-Founder & CEO), via prior venture Lattice Metrics",
+          "filed_year": 2020,
+          "status_text": "Resolved 2020",
+          "summary": "A former services vendor sued Lattice Metrics in 2020 for breach of a services contract, seeking damages related to a terminated engagement. The parties settled for an undisclosed, immaterial amount and the case was dismissed with prejudice later that year. Lattice Metrics made no admission of liability. No further exposure remains from this matter.",
+          "citation": {
+            "document": "adverse_media_records.md",
+            "line": 12
+          },
+          "classification": "resolved_immaterial",
+          "human_review": false,
+          "classification_source": "fallback_keyword",
+          "safety_gate_overrode": false,
+          "rationale": "Classified 'resolved_immaterial' via fallback_keyword, confirmed by the safety gate."
+        },
+        {
+          "record_id": 3,
+          "title": "State Attorney General Inquiry \u2014 Ongoing",
+          "subject": "Meridian SaaS Co. (entity-level, not tied to a specific founder's prior venture)",
+          "filed_year": 2026,
+          "status_text": "Ongoing \u2014 no findings issued",
+          "summary": "In 2026, a state attorney general's office opened an inquiry into data-retention practices across several SaaS vendors, including Meridian SaaS Co. Meridian has received a civil investigative demand and is cooperating. As of this record, no findings have been issued, no settlement has been reached, and no resolution timeline has been disclosed. The outcome and materiality of this matter cannot currently be determined.",
+          "citation": {
+            "document": "adverse_media_records.md",
+            "line": 17
+          },
+          "classification": "ongoing_ambiguous",
+          "human_review": true,
+          "classification_source": "fallback_keyword",
+          "safety_gate_overrode": false,
+          "rationale": "Classified 'ongoing_ambiguous' via fallback_keyword, confirmed by the safety gate."
+        }
+      ],
+      "human_review_required_count": 1
+    }
   }
 }
