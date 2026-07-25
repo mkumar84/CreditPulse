@@ -977,50 +977,70 @@ def test_edges_with_genuine_source_basis_cite_the_correct_line():
     assert "board" in cited_text(priya_board_seat).lower()
 
 
-def test_edges_with_no_genuine_source_are_explicitly_uncited_not_fabricated():
-    """The Northbeam Robotics edges (both investors' invested_in/board_seat) and Highline's
-    investment in Lattice Metrics exist only to demonstrate the concentration-risk flag --
-    no source document backs them. They must be explicitly citation: null, never given a
-    fabricated citation just to fill the field."""
+def test_northbeam_and_lattice_metrics_edges_now_cite_portfolio_company_records():
+    """The 5 edges that previously had no genuine source (Highline's investment in Lattice
+    Metrics, and both investors' invested_in/board_seat relationships with Northbeam
+    Robotics) now cite portfolio_company_records.md -- Meridian's own cap table can't
+    legitimately contain these (they're not Meridian's cap table), so a separate document
+    covering the investors' own public portfolio disclosures was added instead. Verified
+    against the actual source text, not just that a citation object is present."""
+    import pathlib
+
     from creditpulse.investor_network import load_investor_network
 
     network = load_investor_network("data/synthetic/investor_network.json")
+    docs = {"portfolio_company_records.md": pathlib.Path("data/synthetic/portfolio_company_records.md").read_text().splitlines()}
     edges_by_key = {(edge["source"], edge["target"], edge["type"]): edge for edge in network["edges"]}
 
-    uncited_keys = [
+    previously_uncited_keys = [
         ("highline_ventures", "lattice_metrics", "invested_in"),
         ("highline_ventures", "northbeam_robotics", "invested_in"),
         ("anchor_point_capital", "northbeam_robotics", "invested_in"),
         ("highline_ventures", "northbeam_robotics", "board_seat"),
         ("anchor_point_capital", "northbeam_robotics", "board_seat"),
     ]
-    for key in uncited_keys:
-        assert edges_by_key[key]["citation"] is None, key
+    for key in previously_uncited_keys:
+        edge = edges_by_key[key]
+        citation = edge["citation"]
+        assert citation is not None, key
+        assert citation["document"] == "portfolio_company_records.md", key
+        cited_text = docs["portfolio_company_records.md"][citation["line"] - 1]
+        investor_name = "Highline Ventures" if key[0] == "highline_ventures" else "Anchor Point Capital"
+        assert investor_name in cited_text, (key, cited_text)
 
 
-def test_sponsor_network_payload_flags_every_uncited_edge_type_consistently():
-    """has_citation must be computed uniformly across ALL edge types -- an uncited
-    previously_worked_at edge and an uncited invested_in/board_seat edge must be flagged
-    identically (has_citation: False), never one silently dropped while another is kept.
-    Since previously_worked_at now has a real citation, this proves the *mechanism* treats
-    types uniformly using the still-uncited Northbeam/Lattice-Metrics edges as the case."""
+def test_sponsor_network_payload_all_edges_now_cited_none_dropped():
+    """Every edge in the real network now has a real citation -- no edge is ever dropped
+    for lacking one, and has_citation reflects the citation actually present."""
     from creditpulse.api import build_sponsor_network_payload
 
     payload = build_sponsor_network_payload()
-    assert len(payload["edges"]) == 18  # no edge dropped for lacking a citation
+    assert len(payload["edges"]) == 18  # no edge dropped
+    assert all(edge["has_citation"] for edge in payload["edges"])
+    assert all(edge["citation"] is not None for edge in payload["edges"])
 
-    uncited = [edge for edge in payload["edges"] if not edge["has_citation"]]
-    assert len(uncited) == 5
-    assert {edge["type"] for edge in uncited} == {"invested_in", "board_seat"}
 
-    cited = [edge for edge in payload["edges"] if edge["has_citation"]]
-    assert len(cited) == 13
-    for edge in cited:
-        assert edge["citation"] is not None
+def test_serialize_edges_with_citation_status_treats_every_edge_type_uniformly():
+    """Structural proof the flagging mechanism doesn't discriminate by edge type: mixed
+    cited/uncited edges across several types must all be present in the output (never
+    dropped) with has_citation computed the same way regardless of type."""
+    from creditpulse.investor_network import serialize_edges_with_citation_status
 
-    # Every edge, regardless of type or citation status, is present in the response --
-    # has_citation is a flag, not a filter.
-    assert {edge["type"] for edge in payload["edges"]} == {"co_founded", "current_role", "board_seat", "invested_in", "previously_worked_at"}
+    edges = [
+        {"source": "a", "target": "b", "type": "previously_worked_at", "citation": None},
+        {"source": "c", "target": "d", "type": "invested_in", "citation": None},
+        {"source": "e", "target": "f", "type": "board_seat", "citation": {"document": "x.md", "line": 1}},
+        {"source": "g", "target": "h", "type": "co_founded", "citation": None},
+    ]
+    result = serialize_edges_with_citation_status(edges)
+    assert len(result) == 4  # nothing dropped, including the three uncited edges
+    has_citation_by_type = {edge["type"]: edge["has_citation"] for edge in result}
+    assert has_citation_by_type == {
+        "previously_worked_at": False,
+        "invested_in": False,
+        "board_seat": True,
+        "co_founded": False,
+    }
 
 
 def test_no_current_person_at_meridian_is_disconnected_from_it_in_the_network():
@@ -1069,6 +1089,62 @@ def test_concentration_flag_detects_shared_board_seats_via_graph_traversal():
     # Grayridge Partners only holds one board seat (Meridian) -- must not be flagged.
     flagged_investors = {flag.investor_a for flag in flags} | {flag.investor_b for flag in flags}
     assert "Grayridge Partners" not in flagged_investors
+
+
+def test_concentration_flag_on_real_data_is_fully_sourced():
+    """All five previously-uncited edges (Highline->Lattice Metrics, and both investors'
+    Northbeam Robotics relationships) are now cited to portfolio_company_records.md, so the
+    real concentration flag's own evidentiary basis (both investors' board seats at both
+    shared companies) must report fully_sourced: True, not just a bare finding."""
+    from creditpulse.investor_network import compute_concentration_flags, load_investor_network
+
+    network = load_investor_network("data/synthetic/investor_network.json")
+    flags = compute_concentration_flags(network)
+    assert len(flags) == 1
+    assert flags[0].fully_sourced is True
+    assert flags[0].unsourced_relationships == ()
+    assert "not independently sourced" not in flags[0].message
+
+
+def test_concentration_flag_reports_partial_evidence_explicitly():
+    """Direct proof the honesty mechanism works, not just that today's data happens to be
+    fully cited: construct a synthetic network where one of the four underlying board-seat
+    edges behind a 2-company concentration flag has no citation. The flag must report
+    fully_sourced: False, name exactly which relationship is unsourced, and say so in the
+    message -- not present a partially-inferred finding as a single, fully-grounded one."""
+    from creditpulse.investor_network import compute_concentration_flags
+
+    network = {
+        "nodes": [
+            {"id": "co_a", "type": "company", "name": "Company A"},
+            {"id": "co_b", "type": "company", "name": "Company B"},
+            {"id": "inv_x", "type": "investor", "name": "Investor X"},
+            {"id": "inv_y", "type": "investor", "name": "Investor Y"},
+        ],
+        "edges": [
+            {"source": "inv_x", "target": "co_a", "type": "board_seat", "citation": {"document": "doc.md", "line": 1}},
+            {"source": "inv_y", "target": "co_a", "type": "board_seat", "citation": {"document": "doc.md", "line": 2}},
+            {"source": "inv_x", "target": "co_b", "type": "board_seat", "citation": None},
+            {"source": "inv_y", "target": "co_b", "type": "board_seat", "citation": {"document": "doc.md", "line": 3}},
+        ],
+    }
+    flags = compute_concentration_flags(network)
+    assert len(flags) == 1
+    flag = flags[0]
+    assert flag.fully_sourced is False
+    assert flag.unsourced_relationships == ("Investor X board seat at Company B",)
+    assert "1 of 4" in flag.message
+    assert "not independently sourced" in flag.message
+
+
+def test_sponsor_network_payload_exposes_concentration_flag_sourcing_status():
+    from creditpulse.api import build_sponsor_network_payload
+
+    payload = build_sponsor_network_payload()
+    assert len(payload["concentration_flags"]) == 1
+    flag = payload["concentration_flags"][0]
+    assert flag["fully_sourced"] is True
+    assert flag["unsourced_relationships"] == []
 
 
 def test_adverse_media_extraction_cites_every_record():

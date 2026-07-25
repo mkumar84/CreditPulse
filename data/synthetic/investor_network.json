@@ -24,15 +24,15 @@
     {"source": "anchor_point_capital", "target": "meridian", "type": "invested_in", "round": "Seed", "citation": {"document": "cap_table.md", "line": 13}},
     {"source": "highline_ventures", "target": "meridian", "type": "invested_in", "round": "Series A", "citation": {"document": "cap_table.md", "line": 14}},
     {"source": "grayridge_partners", "target": "meridian", "type": "invested_in", "round": "Series B", "citation": {"document": "cap_table.md", "line": 15}},
-    {"source": "highline_ventures", "target": "lattice_metrics", "type": "invested_in", "round": "Series A", "citation": null},
-    {"source": "highline_ventures", "target": "northbeam_robotics", "type": "invested_in", "round": "Seed", "citation": null},
-    {"source": "anchor_point_capital", "target": "northbeam_robotics", "type": "invested_in", "round": "Series A", "citation": null},
+    {"source": "highline_ventures", "target": "lattice_metrics", "type": "invested_in", "round": "Series A", "citation": {"document": "portfolio_company_records.md", "line": 6}},
+    {"source": "highline_ventures", "target": "northbeam_robotics", "type": "invested_in", "round": "Seed", "citation": {"document": "portfolio_company_records.md", "line": 9}},
+    {"source": "anchor_point_capital", "target": "northbeam_robotics", "type": "invested_in", "round": "Series A", "citation": {"document": "portfolio_company_records.md", "line": 12}},
 
     {"source": "priya_anand", "target": "meridian", "type": "board_seat", "citation": {"document": "cap_table.md", "line": 26}},
     {"source": "anchor_point_capital", "target": "meridian", "type": "board_seat", "citation": {"document": "cap_table.md", "line": 26}},
     {"source": "highline_ventures", "target": "meridian", "type": "board_seat", "citation": {"document": "cap_table.md", "line": 26}},
     {"source": "grayridge_partners", "target": "meridian", "type": "board_seat", "citation": {"document": "cap_table.md", "line": 26}},
-    {"source": "highline_ventures", "target": "northbeam_robotics", "type": "board_seat", "citation": null},
-    {"source": "anchor_point_capital", "target": "northbeam_robotics", "type": "board_seat", "citation": null}
+    {"source": "highline_ventures", "target": "northbeam_robotics", "type": "board_seat", "citation": {"document": "portfolio_company_records.md", "line": 9}},
+    {"source": "anchor_point_capital", "target": "northbeam_robotics", "type": "board_seat", "citation": {"document": "portfolio_company_records.md", "line": 12}}
   ]
 }
